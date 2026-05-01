@@ -1,4 +1,4 @@
-<img width="2064" height="512" alt="Discord Ticket Bot Banner" src="https://github.com/user-attachments/assets/dce0dcf6-513d-4586-9a90-04be4658f087" />
+<img width="1917" height="474" alt="discord_ticketbot_banner" src="https://github.com/user-attachments/assets/c656750b-3bca-4fcc-a48e-1d173dec6aa4" />
 
 # 🎫 Discord Ticket Bot
 
