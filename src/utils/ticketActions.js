@@ -8,11 +8,11 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  AttachmentBuilder,
   EmbedBuilder,
 } = require('discord.js');
 const db = require('../database');
 const { generateTranscript } = require('./transcript');
+const { uploadTranscript }   = require('./mskApi');
 const {
   ticketOpenedEmbed,
   ticketClosedEmbed,
@@ -242,19 +242,33 @@ async function performClose(client, channel, ticket, closer, reason) {
     await Promise.all(withButtons.map(m => m.edit({ components: [] }).catch(() => null)));
   } catch { /* ignore */ }
 
-  // 2. Generate transcript
+  // 2. Generate transcript & upload to MSK server
   let transcriptHtml = null;
-  let transcriptFile = null;
+  let transcriptUrl  = null;
 
   if (cfg.createTranscript) {
     try {
       transcriptHtml = await generateTranscript(channel, ticket, channel.guild.name);
-      transcriptFile = new AttachmentBuilder(
-        Buffer.from(transcriptHtml, 'utf-8'),
-        { name: `ticket-${ticket.id}.html` }
-      );
     } catch (err) {
-      client.logger.error('[performClose] Transcript error:', err);
+      client.logger.error('[performClose] Transcript generation error:', err);
+    }
+
+    if (transcriptHtml) {
+      // Collect attachments from the channel for premium tiers
+      const attachments = await collectAttachments(channel, client);
+
+      const result = await uploadTranscript({
+        ticketId:       ticket.id,
+        transcriptHtml,
+        attachments,
+      });
+
+      if (result.success) {
+        transcriptUrl = result.url;
+        client.logger.info(`[performClose] Transcript uploaded: ${transcriptUrl} (tier: ${result.tier})`);
+      } else {
+        client.logger.error(`[performClose] Transcript upload failed: ${result.error}`);
+      }
     }
   }
 
@@ -288,8 +302,7 @@ async function performClose(client, channel, ticket, closer, reason) {
     const logChannel = await channel.guild.channels.fetch(client.config.logsChannelId).catch(() => null);
     if (logChannel) {
       await logChannel.send({
-        embeds: [ticketLogEmbed(client, { ticket: updatedTicket, closer, reason, duration, transcriptUrl: null })],
-        files:  transcriptFile ? [transcriptFile] : [],
+        embeds: [ticketLogEmbed(client, { ticket: updatedTicket, closer, reason, duration, transcriptUrl })],
       }).catch(err => client.logger.error('[performClose] Failed to send log:', err));
     } else {
       client.logger.warn('[performClose] Log channel not found.');
@@ -299,21 +312,12 @@ async function performClose(client, channel, ticket, closer, reason) {
   // 7. DM the ticket creator
   if (cfg.dmUser) {
     try {
-      const creator   = await channel.guild.members.fetch(ticket.creator_id);
-      const dmPayload = {
+      const creator = await channel.guild.members.fetch(ticket.creator_id);
+      await creator.user.send({
         embeds: [ticketClosedDMEmbed(client, {
-          count: ticket.id, type: ticket.type, closer, reason, transcriptUrl: null,
+          count: ticket.id, type: ticket.type, closer, reason, transcriptUrl,
         })],
-      };
-      if (transcriptHtml) {
-        dmPayload.files = [
-          new AttachmentBuilder(
-            Buffer.from(transcriptHtml, 'utf-8'),
-            { name: `ticket-${ticket.id}.html` }
-          ),
-        ];
-      }
-      await creator.user.send(dmPayload);
+      });
       client.logger.info(`[performClose] DM sent to ${creator.user.tag}`);
     } catch (err) {
       client.logger.warn(`[performClose] Could not DM creator (${ticket.creator_id}): ${err.message}`);
@@ -413,6 +417,54 @@ async function performMove(client, channel, ticket, newType, movedBy) {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Collect all attachments from the channel messages.
+ * These are sent to the MSK API so premium users can download them from the transcript.
+ * @param {import('discord.js').TextChannel} channel
+ * @param {object} client
+ * @returns {Promise<Array<{name: string, data: Buffer, mimeType: string}>>}
+ */
+async function collectAttachments(channel, client) {
+  if (!process.env.MSK_API_KEY) return [];
+
+  try {
+    const attachments = [];
+    let lastId;
+
+    while (true) {
+      const options = { limit: 100 };
+      if (lastId) options.before = lastId;
+      const batch = await channel.messages.fetch(options);
+      if (batch.size === 0) break;
+
+      for (const msg of batch.values()) {
+        for (const att of msg.attachments.values()) {
+          try {
+            const res    = await fetch(att.url);
+            if (!res.ok) continue;
+            const buffer = Buffer.from(await res.arrayBuffer());
+            attachments.push({
+              name:     att.name,
+              data:     buffer,
+              mimeType: att.contentType ?? 'application/octet-stream',
+            });
+          } catch (err) {
+            client.logger?.warn(`[collectAttachments] Failed to fetch ${att.name}: ${err.message}`);
+          }
+        }
+      }
+
+      lastId = batch.last().id;
+      if (batch.size < 100) break;
+    }
+
+    return attachments;
+  } catch (err) {
+    client.logger?.warn(`[collectAttachments] Error: ${err.message}`);
+    return [];
+  }
+}
 
 function buildRatingRow() {
   return new ActionRowBuilder().addComponents(
