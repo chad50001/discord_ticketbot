@@ -4,7 +4,63 @@ const { loadEvents }      = require('./handlers/eventHandler');
 const { loadComponents }  = require('./handlers/componentHandler');
 const { initDatabase }    = require('./database');
 const { loadConfig, validateConfig } = require('./config');
+const { checkApiKey }     = require('./utils/mskApi');
 const logger = require('./utils/logger');
+
+// ── Startup Banner ────────────────────────────────────────────────────────────
+
+const TIER_COLORS = {
+  basic:        '\x1b[90m',   // gray
+  premium:      '\x1b[38;2;94;177;49m',  // green (accent)
+  premium_plus: '\x1b[38;2;157;101;254m', // purple
+};
+
+const TIER_LABELS = {
+  basic:        'Basic',
+  premium:      'Premium',
+  premium_plus: 'Premium+',
+};
+
+function printBanner() {
+  const reset = '\x1b[0m';
+  console.log('');
+  // MSK – centered above TICKET BOT (24 spaces padding)
+  console.log('\x1b[38;2;143;110;250m                        ███╗   ███╗███████╗██╗  ██╗');
+  console.log('\x1b[38;2;150;100;250m                        ████╗ ████║██╔════╝██║ ██╔╝');
+  console.log('\x1b[38;2;157;90;251m                        ██╔████╔██║███████╗█████╔╝ ');
+  console.log('\x1b[38;2;165;80;251m                        ██║╚██╔╝██║╚════██║██╔═██╗ ');
+  console.log('\x1b[38;2;172;70;252m                        ██║ ╚═╝ ██║███████║██║  ██╗');
+  console.log('\x1b[38;2;179;60;252m                        ╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝');
+  // TICKET BOT
+  console.log('\x1b[38;2;186;50;253m████████╗██╗ ██████╗██╗  ██╗███████╗████████╗    ██████╗  ██████╗ ████████╗');
+  console.log('\x1b[38;2;193;40;253m╚══██╔══╝██║██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝    ██╔══██╗██╔═══██╗╚══██╔══╝');
+  console.log('\x1b[38;2;200;30;254m   ██║   ██║██║     █████╔╝ █████╗     ██║       ██████╔╝██║   ██║   ██║   ');
+  console.log('\x1b[38;2;207;20;254m   ██║   ██║██║     ██╔═██╗ ██╔══╝     ██║       ██╔══██╗██║   ██║   ██║   ');
+  console.log('\x1b[38;2;214;10;255m   ██║   ██║╚██████╗██║  ██╗███████╗   ██║       ██████╔╝╚██████╔╝   ██║   ');
+  console.log('\x1b[38;2;222;0;255m   ╚═╝   ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝       ╚═════╝  ╚═════╝    ╚═╝' + reset);
+  console.log(`\x1b[90m                 https://github.com/MSK-Scripts/discord_ticketbot${reset}`);
+  console.log('');
+}
+
+async function printApiKeyStatus() {
+  const reset = '\x1b[0m';
+  const gray  = '\x1b[90m';
+  process.stdout.write(`${gray}Checking API Key...${reset} `);
+
+  const { status, tier } = await checkApiKey();
+
+  if (status === 'not_configured') {
+    console.log(`\x1b[90mKein API Key konfiguriert → Basic${reset}`);
+  } else if (status === 'invalid') {
+    console.log(`\x1b[31mAPI Key ungültig → Basic${reset}`);
+  } else if (status === 'unreachable') {
+    console.log(`\x1b[33mMSK-Server nicht erreichbar → Basic${reset}`);
+  } else {
+    const color = TIER_COLORS[tier] ?? '\x1b[32m';
+    const label = TIER_LABELS[tier] ?? tier;
+    console.log(`${color}API Key gültig → ${label}${reset}`);
+  }
+}
 
 class TicketClient extends Client {
   constructor() {
@@ -31,7 +87,16 @@ class TicketClient extends Client {
   }
 
   async start() {
-    this.logger.info('Starting Discord Ticket Bot...');
+    printBanner();
+
+    // Check API Key status before connecting
+    await printApiKeyStatus();
+    console.log('');
+
+    const reset = '\x1b[0m';
+    const gray  = '\x1b[90m';
+    process.stdout.write(`${gray}Connecting to Discord...${reset}\n`);
+    console.log('');
 
     // Load & validate config
     this.config = loadConfig();

@@ -63,4 +63,37 @@ async function uploadTranscript({ ticketId, transcriptHtml, attachments = [] }) 
   return { success: true, url: data.url, tier: data.tier, expiresAt: data.expiresAt, error: null };
 }
 
-module.exports = { uploadTranscript };
+/**
+ * Check the validity and tier of the configured API key.
+ * Called once at bot startup to inform the user of their premium status.
+ *
+ * @returns {Promise<{ status: 'not_configured'|'invalid'|'valid', tier: string|null }>}
+ */
+async function checkApiKey() {
+  if (!MSK_API_KEY || MSK_API_KEY === 'YOUR_MSK_API_KEY_HERE') {
+    return { status: 'not_configured', tier: null };
+  }
+
+  let response;
+  try {
+    response = await fetch(`${MSK_API_URL}/api/verify/status`, {
+      method:  'GET',
+      headers: { 'Authorization': `Bearer ${MSK_API_KEY}` },
+    });
+  } catch {
+    return { status: 'unreachable', tier: null };
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    return { status: 'invalid', tier: null };
+  }
+
+  try {
+    const data = await response.json();
+    return { status: 'valid', tier: data.tier };
+  } catch {
+    return { status: 'invalid', tier: null };
+  }
+}
+
+module.exports = { uploadTranscript, checkApiKey };
