@@ -22,7 +22,7 @@ Ein moderner, selbst-gehosteter Discord-Ticket-Bot auf Basis von **Discord.js v1
 | 🎫 Ticket-Typen | Bis zu 25 konfigurierbare Typen mit eigenem Emoji, Farbe, Kategorie & Fragen |
 | 📋 Fragebögen | Modale Formulare (bis zu 5 Fragen) bei Ticket-Erstellung |
 | 🙋 Claim-System | Claim/Unclaim per Button — togglet automatisch, Embed & Topic werden aktualisiert |
-| 🔴 Prioritäten | Low / Medium / High / Urgent per `/priority` — im Channel-Topic und im Embed sichtbar |
+| 🔴 Prioritäten | Low / Medium / High / Urgent per `/priority` — im Channel-Topic und Embed sichtbar |
 | 📝 Staff-Notizen | Private Notizen per `/note add` / `/note list` |
 | 🔀 Ticket verschieben | Per `/move` oder Button in anderen Typ/Kategorie verschieben (Staff only) |
 | 🛡️ Typ-spezifische Staff-Rollen | Jeder Ticket-Typ kann eigene Staff-Rollen haben |
@@ -33,6 +33,7 @@ Ein moderner, selbst-gehosteter Discord-Ticket-Bot auf Basis von **Discord.js v1
 | ⏰ Auto-Close | Inaktive Tickets automatisch schließen mit konfigurierbarem Warn-Vorlauf |
 | 🔗 Transcript-Links | Transkripte werden online gespeichert und sind per Link abrufbar |
 | 📄 HTML-Transcript | Vollständiges HTML-Transcript mit allen Nachrichten, Embeds und Anhängen |
+| 🌐 Eigene Domain | Premium-Nutzer können Transkripte unter ihrer eigenen Domain abrufen |
 | 📊 Statistiken | Server-weite Stats sowie detaillierte Per-Nutzer-Stats per `/stats` |
 | 🚫 Blacklist | `/blacklist add/remove/list` zum Sperren von Nutzern |
 | 🌍 Mehrsprachig | Deutsch und Englisch enthalten, leicht erweiterbar |
@@ -42,7 +43,7 @@ Ein moderner, selbst-gehosteter Discord-Ticket-Bot auf Basis von **Discord.js v1
 
 ## 🔗 MSK Transcript Service
 
-Anstatt Transkripte als Dateianhang per DM zu versenden, kann der Bot sie auf **[www.msk-scripts.de](https://www.msk-scripts.de)** hochladen und einen öffentlichen Link generieren.
+Anstatt Transkripte als Dateianhang per DM zu versenden, kann der Bot sie auf **[www.msk-scripts.de](https://www.msk-scripts.de)** hochladen und einen öffentlichen Link generieren — im Browser aufrufbar, kein Download nötig.
 
 ### Abo-Modelle
 
@@ -62,12 +63,21 @@ Anstatt Transkripte als Dateianhang per DM zu versenden, kann der Bot sie auf **
 1. **[www.msk-scripts.de/verify](https://www.msk-scripts.de/verify)** aufrufen
 2. Mit GitHub-Account anmelden
 3. Discord-Account verbinden
-4. Server auswählen → API Key wird generiert
+4. Server auswählen → API Key wird sofort generiert
 
 Dann in die `.env` eintragen:
 ```env
 MSK_API_KEY="dein_api_key_hier"
+MSK_API_URL="https://www.msk-scripts.de"
 ```
+
+### Eigene Domain (Premium & Premium+)
+
+Premium-Nutzer können Transkripte unter ihrer eigenen Domain bereitstellen (z.B. `tickets.deinserver.de`).
+
+1. **[www.msk-scripts.de/dashboard](https://www.msk-scripts.de/dashboard)** nach der Verifizierung aufrufen
+2. Domain eintragen und einen DNS **A-Record** auf die angezeigte Server-IP setzen
+3. **„DNS prüfen"** klicken sobald die Propagierung abgeschlossen ist — SSL wird automatisch eingerichtet
 
 > 📖 Vollständige Anleitung: [docu.msk-scripts.de](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)
 
@@ -112,10 +122,10 @@ discord_ticketbot/
     │   ├── move.js             # /move       – Ticket verschieben
     │   ├── rename.js           # /rename     – Kanal umbenennen
     │   ├── transcript.js       # /transcript – HTML-Transcript generieren
-    │   ├── priority.js         # /priority   – Priorität setzen (Topic + Embed)
+    │   ├── priority.js         # /priority   – Priorität setzen
     │   ├── note.js             # /note       – Staff-Notizen
     │   ├── blacklist.js        # /blacklist  – Nutzer sperren
-    │   └── stats.js            # /stats      – Statistiken (Server & Nutzer)
+    │   └── stats.js            # /stats      – Statistiken
     ├── events/
     │   ├── ready.js            # Bot-Start, Status, Auto-Close & Staff-Reminder Loop
     │   ├── messageCreate.js    # Letzte Aktivität tracken
@@ -126,8 +136,8 @@ discord_ticketbot/
     │   │   ├── closeTicket.js      # tb_close
     │   │   ├── claimTicket.js      # tb_claim
     │   │   ├── unclaimTicket.js    # tb_unclaim
-    │   │   ├── moveTicket.js       # tb_move       (öffnet Typ-Auswahl)
-    │   │   ├── deleteTicket.js     # tb_delete     (Bestätigungsschritt)
+    │   │   ├── moveTicket.js       # tb_move
+    │   │   ├── deleteTicket.js     # tb_delete
     │   │   ├── deleteConfirm.js    # tb_deleteConfirm
     │   │   ├── deleteCancel.js     # tb_deleteCancel
     │   │   └── rateTicket.js       # tb_rate:N
@@ -135,15 +145,15 @@ discord_ticketbot/
     │   │   ├── closeReason.js      # tb_modalClose
     │   │   └── ticketQuestions.js  # tb_modalQuestions:type
     │   └── menus/
-    │       ├── panelSelect.js      # tb_panelSelect  (SELECT_MENU Modus)
-    │       ├── ticketType.js       # tb_selectType   (BUTTON Modus, ephemeral)
+    │       ├── panelSelect.js      # tb_panelSelect
+    │       ├── ticketType.js       # tb_selectType
     │       └── moveSelect.js       # tb_moveSelect
     └── utils/
         ├── logger.js           # Farbiger Console-Logger
         ├── embeds.js           # Alle Embed-Konstruktoren
         ├── transcript.js       # HTML-Transcript-Generator
         ├── mskApi.js           # MSK Transcript Service API-Client
-        └── ticketActions.js    # Kernlogik: openTicket, performClose, performMove, refreshTicketMessage
+        └── ticketActions.js    # Kernlogik: openTicket, performClose, performMove
 ```
 
 ---
@@ -201,24 +211,17 @@ Beim ersten Start werden automatisch:
 
 ### 5. Panel einrichten
 
-`/setup` auf dem Discord-Server ausführen (Administrator-Berechtigung erforderlich). Der Bot sendet das Ticket-Panel in den konfigurierten Kanal (`openTicketChannelId`).
+`/setup` auf dem Discord-Server ausführen (Administrator-Berechtigung erforderlich). Der Bot sendet das Ticket-Panel in den konfigurierten Kanal.
 
 ---
 
 ## 🖥️ Autostart mit systemd (Linux-Server)
 
-Die mitgelieferte `ticketbot.service`-Datei ermöglicht automatischen Start nach Server-Neustart.
-
 ### 1. Bot-Dateien auf den Server kopieren
 
 ```bash
-# Projektordner nach /opt kopieren
 sudo cp -r discord_ticketbot /opt/discord_ticketbot
-
-# Dedizierten Systembenutzer anlegen (empfohlen — niemals als root betreiben)
 sudo useradd -r -s /bin/false discord
-
-# Berechtigungen setzen
 sudo chown -R discord:discord /opt/discord_ticketbot
 ```
 
@@ -235,7 +238,7 @@ which node
 # Ausgabe z.B.: /usr/bin/node
 ```
 
-Falls der Pfad abweicht, `ExecStart` in der `ticketbot.service`-Datei entsprechend anpassen.
+Falls der Pfad abweicht, `ExecStart` in `ticketbot.service` entsprechend anpassen.
 
 ### 4. systemd-Unit installieren
 
@@ -271,14 +274,14 @@ sudo journalctl -u ticketbot.service -f
 |---|---|---|
 | `/setup` | Administrator | Ticket-Panel senden |
 | `/close [grund]` | Konfigurierbar | Aktuelles Ticket schließen |
-| `/claim` | Staff | Ticket beanspruchen — Topic & Embed aktualisieren, Button wechselt zu Unclaim |
-| `/unclaim` | Staff | Ticket freigeben — Topic & Embed aktualisieren, Button wechselt zurück |
+| `/claim` | Staff | Ticket beanspruchen — Topic & Embed aktualisieren |
+| `/unclaim` | Staff | Ticket freigeben — Topic & Embed aktualisieren |
 | `/move` | Staff | Ticket in anderen Typ/Kategorie verschieben |
 | `/add <nutzer>` | Staff | Nutzer zum Ticket hinzufügen |
 | `/remove <nutzer>` | Staff | Nutzer aus Ticket entfernen |
 | `/rename <name>` | Staff | Kanal umbenennen |
 | `/transcript` | Staff | HTML-Transcript generieren |
-| `/priority <stufe>` | Staff | Priorität setzen (Channel-Topic & Embed aktualisieren) |
+| `/priority <stufe>` | Staff | Priorität setzen |
 | `/note add <text>` | Staff | Staff-Notiz hinzufügen |
 | `/note list` | Staff | Alle Notizen des Tickets anzeigen |
 | `/stats` | Staff | Server-weite Ticket-Statistiken |
@@ -291,14 +294,12 @@ sudo journalctl -u ticketbot.service -f
 
 ## 🔘 Ticket-Buttons
 
-Jedes Ticket enthält eine Button-Leiste direkt im Kanal:
-
 | Button | Sichtbar wenn | Beschreibung |
 |---|---|---|
-| 🔒 Ticket schließen | Immer (konfigurierbar) | Buttons deaktivieren, Transcript erstellen, Ticket schließen & Kanal umbenennen |
-| 🙋 Beanspruchen | `claimButton: true`, noch nicht geclaimt | Beanspruchen — Topic & Embed aktualisieren, Button wird zu Unclaim |
-| 🙌 Freigeben | `claimButton: true`, bereits geclaimt | Freigeben — Topic & Embed aktualisieren, Button wird zu Claim |
-| 🔀 Verschieben | Mehr als 1 Ticket-Typ konfiguriert | Staff öffnet Typ-Auswahl (nur Staff) |
+| 🔒 Ticket schließen | Immer (konfigurierbar) | Buttons deaktivieren, Transcript erstellen, Ticket schließen & umbenennen |
+| 🙋 Beanspruchen | `claimButton: true`, noch nicht geclaimt | Topic & Embed aktualisieren, Button wird zu Unclaim |
+| 🙌 Freigeben | `claimButton: true`, bereits geclaimt | Topic & Embed aktualisieren, Button wird zu Claim |
+| 🔀 Verschieben | Mehr als 1 Ticket-Typ konfiguriert | Staff öffnet Typ-Auswahl |
 | 🗑️ Ticket löschen | Nach Schließung | Löscht den Kanal nach Bestätigung |
 
 ---
@@ -315,25 +316,19 @@ Jedes Ticket enthält eine Button-Leiste direkt im Kanal:
 
 | Modus | Verhalten |
 |---|---|
-| `"BUTTON"` | Ein grüner Button wird angezeigt. Klick öffnet ein ephemeral Select-Menu — immer frisch, kein Discord-Caching-Problem. |
-| `"SELECT_MENU"` | Das Select-Menu wird direkt im Panel angezeigt. Nach jeder Nutzung wird es automatisch zurückgesetzt — kein Discord-Neustart nötig um ein zweites Ticket desselben Typs zu öffnen. |
+| `"BUTTON"` | Grüner Button öffnet ephemeral Select-Menu — immer frisch, kein Discord-Caching-Problem. |
+| `"SELECT_MENU"` | Select-Menu direkt im Panel, setzt sich automatisch zurück. |
 
 ### Panel Logo & Banner
 
 ```jsonc
 "panel": {
-  "logo": {
-    "enabled": true,
-    "file": "logo.png"      // Dateiname im assets/-Ordner
-  },
-  "banner": {
-    "enabled": true,
-    "file": "banner.png"    // Dateiname im assets/-Ordner
-  }
+  "logo":   { "enabled": true, "file": "logo.png"   },
+  "banner": { "enabled": true, "file": "banner.png" }
 }
 ```
 
-Unterstützte Formate: PNG, JPG, GIF, WEBP. Nach dem Hinzufügen oder Ändern von Bildern `/setup` erneut ausführen.
+Unterstützte Formate: PNG, JPG, GIF, WEBP. Nach Änderungen `/setup` erneut ausführen.
 
 ### Kanalzustand-Übersicht
 
@@ -341,94 +336,54 @@ Unterstützte Formate: PNG, JPG, GIF, WEBP. Nach dem Hinzufügen oder Ändern vo
 |---|---|---|---|
 | Ticket geöffnet | `ticket-maxmuster` | `🟡 Mittel` | Priorität: 🟡 Mittel |
 | `/priority urgent` | `ticket-maxmuster` | `🔴 Dringend` | Priorität: 🔴 Dringend |
-| `/claim` | `ticket-maxmuster` | `🟡 Mittel \| 🙋 Claimed by @Staff` | Priorität: 🟡 Mittel + Claimed-by-Feld |
-| `/unclaim` | `ticket-maxmuster` | `🟡 Mittel` | Priorität: 🟡 Mittel (Feld entfernt) |
+| `/claim` | `ticket-maxmuster` | `🟡 Mittel \| 🙋 Claimed by @Staff` | + Claimed-by-Feld |
+| `/unclaim` | `ticket-maxmuster` | `🟡 Mittel` | Feld entfernt |
 | Ticket geschlossen | `closed-ticket-maxmuster` | unverändert | alle Buttons entfernt |
-
-> **Hinweis zu Rate-Limits:** Discord limitiert Topic-Änderungen auf 2 pro 10 Minuten pro Kanal. Wenn das Limit erreicht ist, erscheint eine Warnung im Ticket und das Topic wird automatisch aktualisiert sobald das Limit zurückgesetzt ist.
 
 ### Ticket-Typen
 
 ```jsonc
 {
-  "codeName": "support",          // Eindeutiger Bezeichner (Kleinbuchstaben)
-  "name": "Support",              // Anzeigename im Menü
-  "description": "...",           // Beschreibung im Auswahlmenü
+  "codeName": "support",
+  "name": "Support",
+  "description": "...",
   "emoji": "💡",
-  "color": "#ff0000",             // Farbe oder "" für mainColor
-  "categoryId": "123456789",      // Discord-Kategorie-ID
-  "ticketNameOption": "",         // Kanalname: USERNAME, USERID, TICKETCOUNT
-  "customDescription": "...",     // Variablen: REASON1, REASON2, USERNAME, USERID
-  "cantAccess": ["roleId"],       // Rollen ohne Zugriff auf diesen Typ
-  "staffRoles": [],               // Typ-spezifische Staff-Rollen (siehe unten)
+  "color": "#ff0000",
+  "categoryId": "123456789",
+  "ticketNameOption": "",         // USERNAME, USERID, TICKETCOUNT oder ""
+  "customDescription": "...",
+  "cantAccess": ["roleId"],
+  "staffRoles": [],
   "askQuestions": true,
   "questions": [
-    {
-      "label": "Frage",
-      "placeholder": "Beispiel...",
-      "style": "SHORT",           // SHORT oder PARAGRAPH
-      "maxLength": 500
-    }
+    { "label": "Frage", "placeholder": "...", "style": "SHORT", "maxLength": 500 }
   ]
 }
-```
-
-> **Hinweis zu `TICKETCOUNT`:** Globaler, fortlaufender Zähler über alle Tickets des Servers — setzt sich niemals zurück.
-
-### Typ-spezifische Staff-Rollen
-
-```jsonc
-// Nur Entwickler können "Bug Report"-Tickets sehen:
-{ "codeName": "bugreport", "staffRoles": ["ROLE_ID_DEVELOPER"] }
-
-// Leer lassen → globale rolesWhoHaveAccessToTheTickets werden verwendet:
-{ "codeName": "support", "staffRoles": [] }
 ```
 
 ### Staff-Erinnerung
 
 ```jsonc
-"staffReminder": {
-  "enabled": true,
-  "afterHours": 4,     // Erinnerung nach X Stunden ohne Nachricht
-  "pingRoles": true    // Ob die Staff-Rollen des Ticket-Typs gepingt werden
-}
+"staffReminder": { "enabled": true, "afterHours": 4, "pingRoles": true }
 ```
 
-Der Bot prüft alle **15 Minuten** offene Tickets. Jedes Ticket wird dabei **nur einmal** erinnert.
+Der Bot prüft alle **15 Minuten** offene Tickets. Jedes Ticket wird **nur einmal** erinnert.
 
 ### Bewertungssystem
 
 ```jsonc
-"ratingSystem": {
-  "enabled": true,
-  "dmUser": true,
-  "ratingsChannelId": "CHANNEL_ID_HERE"
-}
+"ratingSystem": { "enabled": true, "dmUser": true, "ratingsChannelId": "CHANNEL_ID" }
 ```
-
-Nach dem Schließen erhält der Nutzer eine 1–5 ⭐ Bewertungsanfrage per DM. Das Ergebnis wird automatisch in `ratingsChannelId` gepostet.
 
 ### Auto-Close
 
 ```jsonc
-"autoClose": {
-  "enabled": true,
-  "inactiveHours": 48,       // Ticket nach N Stunden ohne Aktivität schließen
-  "warnBeforeHours": 6,      // N Stunden vorher warnen
-  "excludeClaimed": true     // Geclaimte Tickets ausschließen
-}
+"autoClose": { "enabled": true, "inactiveHours": 48, "warnBeforeHours": 6, "excludeClaimed": true }
 ```
-
-### Statistiken
-
-`/stats` zeigt server-weite Zahlen. `/stats @nutzer` zeigt ein detailliertes Profil in zwei Sektionen — **👤 Als Nutzer** (Tickets eröffnet, häufigster Typ, Ø Bewertung vergeben) und **🛡️ Als Staff** (Tickets geschlossen & beansprucht, Ø Bewertung erhalten).
 
 ---
 
 ## 🗄️ Datenbank-Schema
-
-Die SQLite-Datenbank wird automatisch in `data/tickets.db` erstellt. Bestehende Datenbanken werden bei fehlenden Spalten automatisch migriert.
 
 | Tabelle | Inhalt |
 |---|---|

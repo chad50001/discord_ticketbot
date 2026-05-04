@@ -33,6 +33,7 @@ A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLit
 | ⏰ Auto-Close | Automatically close inactive tickets with a configurable warning period |
 | 🔗 Transcript Links | Transcripts stored online and accessible via a public link |
 | 📄 HTML Transcript | Full HTML transcript with all messages, embeds and attachments |
+| 🌐 Custom Domain | Premium users can serve transcripts under their own domain |
 | 📊 Statistics | Server-wide stats and detailed per-user stats via `/stats` |
 | 🚫 Blacklist | `/blacklist add/remove/list` to block users from opening tickets |
 | 🌍 Multilingual | German and English included, easily extensible |
@@ -42,7 +43,7 @@ A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLit
 
 ## 🔗 MSK Transcript Service
 
-Instead of sending transcripts as file attachments via DM, the bot can upload them to **[www.msk-scripts.de](https://www.msk-scripts.de)** and generate a public link.
+Instead of sending transcripts as file attachments via DM, the bot can upload them to **[www.msk-scripts.de](https://www.msk-scripts.de)** and generate a public link — accessible in any browser, no download required.
 
 ### Subscription Tiers
 
@@ -62,12 +63,21 @@ Instead of sending transcripts as file attachments via DM, the bot can upload th
 1. Visit **[www.msk-scripts.de/verify](https://www.msk-scripts.de/verify)**
 2. Sign in with your GitHub account
 3. Connect your Discord account
-4. Select your server → your API key is generated
+4. Select your server → your API key is generated instantly
 
 Then add it to your `.env`:
 ```env
 MSK_API_KEY="your_api_key_here"
+MSK_API_URL="https://www.msk-scripts.de"
 ```
+
+### Custom Domain (Premium & Premium+)
+
+Premium users can serve transcripts under their own domain (e.g. `tickets.yourserver.com`).
+
+1. Visit **[www.msk-scripts.de/dashboard](https://www.msk-scripts.de/dashboard)** after verifying
+2. Enter your domain and set a DNS **A-Record** pointing to the server IP shown
+3. Click **"Check DNS"** once propagation is complete — SSL is set up automatically
 
 > 📖 Full setup guide: [docu.msk-scripts.de](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)
 
@@ -126,8 +136,8 @@ discord_ticketbot/
     │   │   ├── closeTicket.js      # tb_close
     │   │   ├── claimTicket.js      # tb_claim
     │   │   ├── unclaimTicket.js    # tb_unclaim
-    │   │   ├── moveTicket.js       # tb_move       (opens type selection)
-    │   │   ├── deleteTicket.js     # tb_delete     (confirmation step)
+    │   │   ├── moveTicket.js       # tb_move
+    │   │   ├── deleteTicket.js     # tb_delete
     │   │   ├── deleteConfirm.js    # tb_deleteConfirm
     │   │   ├── deleteCancel.js     # tb_deleteCancel
     │   │   └── rateTicket.js       # tb_rate:N
@@ -135,15 +145,15 @@ discord_ticketbot/
     │   │   ├── closeReason.js      # tb_modalClose
     │   │   └── ticketQuestions.js  # tb_modalQuestions:type
     │   └── menus/
-    │       ├── panelSelect.js      # tb_panelSelect  (SELECT_MENU mode)
-    │       ├── ticketType.js       # tb_selectType   (BUTTON mode, ephemeral)
+    │       ├── panelSelect.js      # tb_panelSelect
+    │       ├── ticketType.js       # tb_selectType
     │       └── moveSelect.js       # tb_moveSelect
     └── utils/
         ├── logger.js           # Coloured console logger
         ├── embeds.js           # All embed constructors
         ├── transcript.js       # HTML transcript generator
         ├── mskApi.js           # MSK Transcript Service API client
-        └── ticketActions.js    # Core logic: openTicket, performClose, performMove, refreshTicketMessage
+        └── ticketActions.js    # Core logic: openTicket, performClose, performMove
 ```
 
 ---
@@ -212,13 +222,8 @@ The included `ticketbot.service` file lets the bot start automatically after a s
 ### 1. Copy the bot files to the server
 
 ```bash
-# Copy project folder to /opt
 sudo cp -r discord_ticketbot /opt/discord_ticketbot
-
-# Create a dedicated system user (recommended — never run as root)
 sudo useradd -r -s /bin/false discord
-
-# Set permissions
 sudo chown -R discord:discord /opt/discord_ticketbot
 ```
 
@@ -322,14 +327,8 @@ Every ticket channel contains a button row at the top:
 
 ```jsonc
 "panel": {
-  "logo": {
-    "enabled": true,
-    "file": "logo.png"      // Filename inside assets/
-  },
-  "banner": {
-    "enabled": true,
-    "file": "banner.png"    // Filename inside assets/
-  }
+  "logo":   { "enabled": true, "file": "logo.png"   },
+  "banner": { "enabled": true, "file": "banner.png" }
 }
 ```
 
@@ -341,48 +340,31 @@ Supported formats: PNG, JPG, GIF, WEBP. Run `/setup` again after adding or chang
 |---|---|---|---|
 | Ticket opened | `ticket-username` | `🟡 Medium` | Priority: 🟡 Medium |
 | `/priority urgent` | `ticket-username` | `🔴 Urgent` | Priority: 🔴 Urgent |
-| `/claim` | `ticket-username` | `🟡 Medium \| 🙋 Claimed by @Staff` | Priority: 🟡 Medium + Claimed by field |
-| `/unclaim` | `ticket-username` | `🟡 Medium` | Priority: 🟡 Medium (field removed) |
+| `/claim` | `ticket-username` | `🟡 Medium \| 🙋 Claimed by @Staff` | + Claimed by field |
+| `/unclaim` | `ticket-username` | `🟡 Medium` | field removed |
 | Ticket closed | `closed-ticket-username` | unchanged | all buttons removed |
 
-> **Note on rate-limits:** Discord limits channel topic changes to 2 per 10 minutes per channel. A warning is shown in the ticket when a topic update is queued and will appear automatically once the limit resets.
+> **Note on rate-limits:** Discord limits channel topic changes to 2 per 10 minutes. A warning is shown in the ticket and the update appears automatically once the limit resets.
 
 ### Ticket Types
 
 ```jsonc
 {
-  "codeName": "support",          // Unique identifier (lowercase)
-  "name": "Support",              // Display name in the menu
-  "description": "...",           // Description in the selection menu
+  "codeName": "support",
+  "name": "Support",
+  "description": "...",
   "emoji": "💡",
   "color": "#ff0000",             // Hex color or "" to use mainColor
-  "categoryId": "123456789",      // Discord category ID
-  "ticketNameOption": "",         // Channel name template: USERNAME, USERID, TICKETCOUNT
+  "categoryId": "123456789",
+  "ticketNameOption": "",         // USERNAME, USERID, TICKETCOUNT or ""
   "customDescription": "...",     // Variables: REASON1, REASON2, USERNAME, USERID
-  "cantAccess": ["roleId"],       // Roles that cannot access this type
-  "staffRoles": [],               // Type-specific staff roles (see below)
+  "cantAccess": ["roleId"],
+  "staffRoles": [],               // Type-specific staff roles
   "askQuestions": true,
   "questions": [
-    {
-      "label": "Question",
-      "placeholder": "Example...",
-      "style": "SHORT",           // SHORT or PARAGRAPH
-      "maxLength": 500
-    }
+    { "label": "Question", "placeholder": "...", "style": "SHORT", "maxLength": 500 }
   ]
 }
-```
-
-> **Note on `TICKETCOUNT`:** A global sequential counter across all tickets — never resets, even if tickets are closed.
-
-### Type-specific Staff Roles
-
-```jsonc
-// Only developers can see "Bug Report" tickets:
-{ "codeName": "bugreport", "staffRoles": ["ROLE_ID_DEVELOPER"] }
-
-// Leave empty → global rolesWhoHaveAccessToTheTickets are used:
-{ "codeName": "support", "staffRoles": [] }
 ```
 
 ### Staff Reminder
@@ -390,8 +372,8 @@ Supported formats: PNG, JPG, GIF, WEBP. Run `/setup` again after adding or chang
 ```jsonc
 "staffReminder": {
   "enabled": true,
-  "afterHours": 4,     // Send reminder after X hours without any message
-  "pingRoles": true    // Whether to @mention the staff roles of the ticket type
+  "afterHours": 4,
+  "pingRoles": true
 }
 ```
 
@@ -407,22 +389,20 @@ The bot checks all open tickets every **15 minutes**. Each ticket is only remind
 }
 ```
 
-After closing, the ticket creator receives a 1–5 ⭐ rating request via DM. The result is automatically posted to `ratingsChannelId`.
-
 ### Auto-Close
 
 ```jsonc
 "autoClose": {
   "enabled": true,
-  "inactiveHours": 48,       // Close after N hours without activity
-  "warnBeforeHours": 6,      // Warn N hours beforehand
-  "excludeClaimed": true     // Exclude claimed tickets
+  "inactiveHours": 48,
+  "warnBeforeHours": 6,
+  "excludeClaimed": true
 }
 ```
 
 ### Statistics
 
-`/stats` shows server-wide numbers. `/stats @user` shows a detailed profile split into **👤 As a User** (tickets opened, favourite type, average rating given) and **🛡️ As Staff** (tickets closed & claimed, average rating received).
+`/stats` shows server-wide numbers. `/stats @user` shows a detailed profile split into **👤 As a User** and **🛡️ As Staff**.
 
 ---
 
