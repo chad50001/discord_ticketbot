@@ -1,8 +1,17 @@
-<img width="1917" height="474" alt="discord_ticketbot_banner" src="https://github.com/user-attachments/assets/c656750b-3bca-4fcc-a48e-1d173dec6aa4" />
+<img width="1917" height="474" alt="MSK Ticket Bot Banner" src="https://github.com/user-attachments/assets/c656750b-3bca-4fcc-a48e-1d173dec6aa4" />
 
-# 🎫 Discord Ticket Bot
+<div align="center">
+
+# 🎫 MSK Ticket Bot
 
 A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLite** — no external database, no telemetry, full feature set out of the box.
+
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blueviolet?style=flat-square)](https://www.gnu.org/licenses/agpl-3.0)
+[![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933?style=flat-square&logo=node.js)](https://nodejs.org)
+[![Discord.js](https://img.shields.io/badge/Discord.js-v14-5865F2?style=flat-square&logo=discord)](https://discord.js.org)
+[![Documentation](https://img.shields.io/badge/Docs-docu.msk--scripts.de-5eb131?style=flat-square)](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)
+
+</div>
 
 ---
 
@@ -22,11 +31,45 @@ A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLit
 | ⭐ Rating System | 1–5 star feedback after closing, automatically posted to a configured channel |
 | ⏰ Staff Reminder | Automatic ping inside the ticket if no staff responds within X hours |
 | ⏰ Auto-Close | Automatically close inactive tickets with a configurable warning period |
-| 📄 HTML Transcript | Full HTML transcript sent to log channel and creator via DM |
+| 🔗 Transcript Links | Transcripts stored online and accessible via a public link |
+| 📄 HTML Transcript | Full HTML transcript with all messages, embeds and attachments |
 | 📊 Statistics | Server-wide stats and detailed per-user stats via `/stats` |
 | 🚫 Blacklist | `/blacklist add/remove/list` to block users from opening tickets |
 | 🌍 Multilingual | German and English included, easily extensible |
 | 🗄️ SQLite | No external database required — file is created automatically |
+
+---
+
+## 🔗 MSK Transcript Service
+
+Instead of sending transcripts as file attachments via DM, the bot can upload them to **[www.msk-scripts.de](https://www.msk-scripts.de)** and generate a public link.
+
+### Subscription Tiers
+
+| Feature | Basic (free) | Premium (€5/mo) | Premium+ (€10/mo) |
+|---|---|---|---|
+| Transcript as link | ✅ | ✅ | ✅ |
+| Max. transcript size | 10 MB | 100 MB | 250 MB |
+| File attachments in transcript | ❌ | ✅ | ✅ |
+| Max. attachment size per ticket | — | 150 MB | 500 MB |
+| Custom domain | ❌ | ✅ | ✅ |
+| Storage duration | 30 days | 60 days | 90 days |
+
+> Premium and Premium+ are unlocked via **[GitHub Sponsors](https://github.com/sponsors/MSK-Scripts)**.
+
+### Getting your API Key
+
+1. Visit **[www.msk-scripts.de/verify](https://www.msk-scripts.de/verify)**
+2. Sign in with your GitHub account
+3. Connect your Discord account
+4. Select your server → your API key is generated
+
+Then add it to your `.env`:
+```env
+MSK_API_KEY="your_api_key_here"
+```
+
+> 📖 Full setup guide: [docu.msk-scripts.de](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)
 
 ---
 
@@ -43,6 +86,9 @@ discord_ticketbot/
 │   └── banner.png              # Panel banner image (place your own here)
 ├── config/
 │   └── config.example.jsonc    # Configuration template (with comments)
+├── docs/
+│   ├── setup-en.md             # MSK Transcript Service setup guide (English)
+│   └── setup-de.md             # MSK Transcript Service setup guide (German)
 ├── locales/
 │   ├── de.json                 # German
 │   └── en.json                 # English
@@ -65,7 +111,7 @@ discord_ticketbot/
     │   ├── unclaim.js          # /unclaim    – Unclaim ticket
     │   ├── move.js             # /move       – Move ticket
     │   ├── rename.js           # /rename     – Rename channel
-    │   ├── transcript.js       # /transcript – HTML transcript
+    │   ├── transcript.js       # /transcript – Generate HTML transcript
     │   ├── priority.js         # /priority   – Set priority (topic + embed)
     │   ├── note.js             # /note       – Staff notes
     │   ├── blacklist.js        # /blacklist  – Block users
@@ -96,6 +142,7 @@ discord_ticketbot/
         ├── logger.js           # Coloured console logger
         ├── embeds.js           # All embed constructors
         ├── transcript.js       # HTML transcript generator
+        ├── mskApi.js           # MSK Transcript Service API client
         └── ticketActions.js    # Core logic: openTicket, performClose, performMove, refreshTicketMessage
 ```
 
@@ -104,8 +151,9 @@ discord_ticketbot/
 ## 🚀 Installation
 
 ### Requirements
+
 - **Node.js** v18 or newer
-- A Discord bot token (https://discord.com/developers/applications)
+- A Discord bot token — [discord.com/developers/applications](https://discord.com/developers/applications)
 
 ### 1. Install dependencies
 
@@ -121,10 +169,16 @@ cp .env.example .env
 ```
 
 Fill in `.env`:
+
 ```env
+# Required
 TOKEN="your_bot_token"
 CLIENT_ID="your_application_id"
 GUILD_ID="your_server_id"
+
+# Optional — MSK Transcript Service (get your key at www.msk-scripts.de/verify)
+MSK_API_KEY="your_msk_api_key"
+MSK_API_URL="https://www.msk-scripts.de"
 ```
 
 ### 3. Set up the configuration
@@ -178,7 +232,7 @@ sudo nano /opt/discord_ticketbot/.env
 
 ```bash
 which node
-# Output e.g.: /usr/bin/node
+# e.g.: /usr/bin/node
 ```
 
 If the path differs, adjust `ExecStart` in `ticketbot.service` accordingly.
@@ -194,10 +248,7 @@ sudo systemctl enable --now ticketbot.service
 ### 5. Check the status
 
 ```bash
-# Show current status
 sudo systemctl status ticketbot.service
-
-# Follow live logs
 sudo journalctl -u ticketbot.service -f
 ```
 
@@ -225,7 +276,7 @@ sudo journalctl -u ticketbot.service -f
 | `/move` | Staff | Move ticket to a different type/category |
 | `/add <user>` | Staff | Add a user to the ticket |
 | `/remove <user>` | Staff | Remove a user from the ticket |
-| `/rename <n>` | Staff | Rename the ticket channel |
+| `/rename <name>` | Staff | Rename the ticket channel |
 | `/transcript` | Staff | Generate an HTML transcript |
 | `/priority <level>` | Staff | Set ticket priority (updates channel topic & embed) |
 | `/note add <text>` | Staff | Add a staff note |
@@ -247,7 +298,7 @@ Every ticket channel contains a button row at the top:
 | 🔒 Close Ticket | Always (configurable) | Disables all buttons, generates transcript, closes & renames channel |
 | 🙋 Claim | `claimButton: true`, not yet claimed | Staff claims — topic & embed update, button becomes Unclaim |
 | 🙌 Unclaim | `claimButton: true`, already claimed | Staff releases — topic & embed update, button becomes Claim |
-| 🔀 Move | More than 1 ticket type | Staff opens type selection (staff only) |
+| 🔀 Move | More than 1 ticket type configured | Staff opens type selection (staff only) |
 | 🗑️ Delete Ticket | After closing | Deletes the channel after confirmation |
 
 ---
@@ -255,8 +306,6 @@ Every ticket channel contains a button row at the top:
 ## 🛠️ Configuration Reference
 
 ### Panel Interaction Type
-
-Controls how users open tickets from the panel.
 
 ```jsonc
 "panel": {
@@ -267,20 +316,18 @@ Controls how users open tickets from the panel.
 | Mode | Behaviour |
 |---|---|
 | `"BUTTON"` | A green button is shown. Clicking it opens an ephemeral select menu — always fresh, no Discord caching issue. |
-| `"SELECT_MENU"` | The select menu is shown directly in the panel. After every use it automatically resets to its default state, so users never need to restart Discord to open a second ticket of the same type. |
+| `"SELECT_MENU"` | The select menu is shown directly in the panel. After every use it automatically resets, so users never need to restart Discord to open a second ticket of the same type. |
 
 ### Panel Logo & Banner
-
-Optional images in the panel embed — place files in the `assets/` folder.
 
 ```jsonc
 "panel": {
   "logo": {
-    "enabled": true,        // Show as thumbnail in the top-right of the embed
+    "enabled": true,
     "file": "logo.png"      // Filename inside assets/
   },
   "banner": {
-    "enabled": true,        // Show as image at the bottom of the embed
+    "enabled": true,
     "file": "banner.png"    // Filename inside assets/
   }
 }
@@ -298,7 +345,7 @@ Supported formats: PNG, JPG, GIF, WEBP. Run `/setup` again after adding or chang
 | `/unclaim` | `ticket-username` | `🟡 Medium` | Priority: 🟡 Medium (field removed) |
 | Ticket closed | `closed-ticket-username` | unchanged | all buttons removed |
 
-> **Note on rate-limits:** Discord limits channel topic changes to 2 per 10 minutes per channel (same bucket as channel renames). A warning is shown in the ticket when a topic update is queued. The update will appear automatically once the limit resets.
+> **Note on rate-limits:** Discord limits channel topic changes to 2 per 10 minutes per channel. A warning is shown in the ticket when a topic update is queued and will appear automatically once the limit resets.
 
 ### Ticket Types
 
@@ -326,11 +373,9 @@ Supported formats: PNG, JPG, GIF, WEBP. Run `/setup` again after adding or chang
 }
 ```
 
-**Note on `TICKETCOUNT`:** This is a global sequential counter across all tickets on the server — it never resets, even if tickets are closed. Each new ticket always gets a higher number than the previous one regardless of type or user.
+> **Note on `TICKETCOUNT`:** A global sequential counter across all tickets — never resets, even if tickets are closed.
 
-### Type-specific Staff Roles (`staffRoles`)
-
-Each ticket type can define its own staff roles, controlling who can see, manage and claim the ticket.
+### Type-specific Staff Roles
 
 ```jsonc
 // Only developers can see "Bug Report" tickets:
@@ -339,12 +384,6 @@ Each ticket type can define its own staff roles, controlling who can see, manage
 // Leave empty → global rolesWhoHaveAccessToTheTickets are used:
 { "codeName": "support", "staffRoles": [] }
 ```
-
-When moving a ticket (`/move`), permissions are automatically updated to match the new type. On ticket open, type-specific roles are pinged instead of the global `roleToPingWhenOpenedId`.
-
-### Moving Tickets (`/move` & Button)
-
-When more than one ticket type is configured, a **🔀 Move** button appears automatically in every ticket. Only staff can use it. Both the button and the `/move` command open a selection menu listing all other available types. After selecting, the channel is moved to the new category, permissions (including `staffRoles`) are updated, and a message is posted in the ticket.
 
 ### Staff Reminder
 
@@ -356,7 +395,7 @@ When more than one ticket type is configured, a **🔀 Move** button appears aut
 }
 ```
 
-The bot checks all open tickets every **15 minutes**. Each ticket is only reminded **once** — no spam.
+The bot checks all open tickets every **15 minutes**. Each ticket is only reminded **once**.
 
 ### Rating System
 
@@ -364,11 +403,11 @@ The bot checks all open tickets every **15 minutes**. Each ticket is only remind
 "ratingSystem": {
   "enabled": true,
   "dmUser": true,
-  "ratingsChannelId": "CHANNEL_ID_HERE"   // Channel where ratings are posted automatically
+  "ratingsChannelId": "CHANNEL_ID_HERE"
 }
 ```
 
-After closing, the ticket creator receives a 1–5 ⭐ rating request via DM. Once they rate, the result is automatically posted to `ratingsChannelId`.
+After closing, the ticket creator receives a 1–5 ⭐ rating request via DM. The result is automatically posted to `ratingsChannelId`.
 
 ### Auto-Close
 
@@ -376,14 +415,14 @@ After closing, the ticket creator receives a 1–5 ⭐ rating request via DM. On
 "autoClose": {
   "enabled": true,
   "inactiveHours": 48,       // Close after N hours without activity
-  "warnBeforeHours": 6,      // Send a warning N hours beforehand
-  "excludeClaimed": true     // Exclude claimed tickets from auto-close
+  "warnBeforeHours": 6,      // Warn N hours beforehand
+  "excludeClaimed": true     // Exclude claimed tickets
 }
 ```
 
 ### Statistics
 
-`/stats` shows server-wide numbers. `/stats @user` shows a detailed profile split into two sections — **👤 As a User** (tickets opened, favourite type, average rating given) and **🛡️ As Staff** (tickets closed & claimed, average rating received — only shown if applicable).
+`/stats` shows server-wide numbers. `/stats @user` shows a detailed profile split into **👤 As a User** (tickets opened, favourite type, average rating given) and **🛡️ As Staff** (tickets closed & claimed, average rating received).
 
 ---
 
@@ -405,6 +444,12 @@ The SQLite database is created automatically at `data/tickets.db`. Existing data
 1. Copy `locales/de.json`, e.g. as `locales/fr.json`
 2. Translate all strings
 3. Set `"lang": "fr"` in `config/config.jsonc`
+
+---
+
+## 📖 Documentation
+
+Full documentation is available at **[docu.msk-scripts.de](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)**.
 
 ---
 
