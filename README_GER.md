@@ -83,6 +83,15 @@ Premium-Nutzer können Transkripte unter ihrer eigenen Domain bereitstellen (z.B
 
 ---
 
+## 💖 Sponsoren
+
+Vielen Dank an alle Sponsoren, die dieses Projekt unterstützen!
+
+<!-- sponsors -->
+<!-- sponsors -->
+
+---
+
 ## 📁 Projektstruktur
 
 ```
