@@ -436,3 +436,5 @@ Full documentation is available at **[docu.msk-scripts.de](https://docu.msk-scri
 ## 📝 License
 
 AGPL-3.0 — Source code must remain open and be published under the same license when distributed or hosted.
+
+Forks and modifications that remove or bypass the MSK Transcript Service integration are not permitted.
