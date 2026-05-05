@@ -2,7 +2,7 @@
 
 <div align="center">
 
-# 🎫 MSK Ticket Bot
+# 🎫 Discord Ticket Bot
 
 A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLite** — no external database, no telemetry, full feature set out of the box.
 
