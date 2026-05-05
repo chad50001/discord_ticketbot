@@ -83,6 +83,15 @@ Premium users can serve transcripts under their own domain (e.g. `tickets.yourse
 
 ---
 
+## 💖 Sponsors
+
+Thank you to all sponsors who support this project!
+
+<!-- sponsors -->
+<!-- sponsors -->
+
+---
+
 ## 📁 Project Structure
 
 ```
