@@ -11,6 +11,8 @@ env:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -19,14 +21,18 @@ jobs:
         uses: JamesIves/github-sponsors-readme-action@v1
         with:
           token: ${{ secrets.SPONSORS_TOKEN }}
+          commit-token: ${{ secrets.GITHUB_TOKEN }}
           file: README.md
           organization: true
           minimum: 0
+          include-private: true
 
       - name: Update sponsors in README_GER.md
         uses: JamesIves/github-sponsors-readme-action@v1
         with:
           token: ${{ secrets.SPONSORS_TOKEN }}
+          commit-token: ${{ secrets.GITHUB_TOKEN }}
           file: README_GER.md
           organization: true
           minimum: 0
+          include-private: true
