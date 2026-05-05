@@ -411,3 +411,5 @@ Die vollständige Dokumentation ist verfügbar unter **[docu.msk-scripts.de](htt
 ## 📝 Lizenz
 
 AGPL-3.0 — Quellcode muss bei Weitergabe oder Hosting offen bleiben und unter der gleichen Lizenz veröffentlicht werden.
+
+Forken und Modifikationen, die die MSK Transcript Service-Integration entfernen oder umgehen, sind nicht zulässig. 
