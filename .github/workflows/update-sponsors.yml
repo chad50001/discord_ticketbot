@@ -5,19 +5,22 @@ on:
     - cron: '0 3 * * *'  # Täglich um 03:00 UTC
   workflow_dispatch:       # Manuell auslösbar
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Update sponsors in README.md
         uses: JamesIves/github-sponsors-readme-action@v1
         with:
           token: ${{ secrets.SPONSORS_TOKEN }}
           file: README.md
-          organization: false
+          organization: true
           minimum: 0
 
       - name: Update sponsors in README_GER.md
@@ -25,5 +28,5 @@ jobs:
         with:
           token: ${{ secrets.SPONSORS_TOKEN }}
           file: README_GER.md
-          organization: false
+          organization: true
           minimum: 0
