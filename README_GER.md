@@ -83,6 +83,15 @@ Premium-Nutzer können Transkripte unter ihrer eigenen Domain bereitstellen (z.B
 
 ---
 
+## 💖 Sponsoren
+
+Vielen Dank an alle, die dieses Projekt unterstützen!
+
+<!-- sponsors -->
+<!-- sponsors -->
+
+---
+
 ## 📁 Projektstruktur
 
 ```
@@ -405,15 +414,6 @@ Der Bot prüft alle **15 Minuten** offene Tickets. Jedes Ticket wird **nur einma
 ## 📖 Dokumentation
 
 Die vollständige Dokumentation ist verfügbar unter **[docu.msk-scripts.de](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)**.
-
----
-
-## 💖 Sponsoren
-
-Vielen Dank an alle, die dieses Projekt unterstützen!
-
-<!-- sponsors -->
-<!-- sponsors -->
 
 ---
 
