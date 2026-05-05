@@ -83,6 +83,15 @@ Premium users can serve transcripts under their own domain (e.g. `tickets.yourse
 
 ---
 
+## 💖 Sponsors
+
+Thank you to everyone who supports this project!
+
+<!-- sponsors -->
+<!-- sponsors -->
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -430,15 +439,6 @@ The SQLite database is created automatically at `data/tickets.db`. Existing data
 ## 📖 Documentation
 
 Full documentation is available at **[docu.msk-scripts.de](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)**.
-
----
-
-## 💖 Sponsors
-
-Thank you to everyone who supports this project!
-
-<!-- sponsors -->
-<!-- sponsors -->
 
 ---
 
