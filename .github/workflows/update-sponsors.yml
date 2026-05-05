@@ -1,10 +1,9 @@
 name: Update Sponsors in README
 
 on:
-  sponsorship:
-    types: [created, cancelled, tier_changed]
-  # Also allow manual trigger for testing
-  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'  # Täglich um 03:00 UTC
+  workflow_dispatch:       # Manuell auslösbar
 
 jobs:
   update:
