@@ -32,8 +32,12 @@ jobs:
           fi
 
           # Commits
+          REPO="MSK-Scripts/discord_ticketbot"
           echo "## 📝 Commits" >> release_body.md
-          git log $RANGE --pretty=format:"- %s (%an)" >> release_body.md
+          git log $RANGE --pretty=format:"%H %s (%an)" | while read hash rest; do
+            SHORT=$(echo $hash | cut -c1-7)
+            echo "- [\`$SHORT\`](https://github.com/$REPO/commit/$hash) $rest" >> release_body.md
+          done
 
           # Modified files
           echo -e "\n\n## 📂 Modified files" >> release_body.md
