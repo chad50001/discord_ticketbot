@@ -130,9 +130,19 @@
   // ─── Bot Status ──────────────────────────────────────────────────────────────
   "status": {
     "enabled": true,
+    "dynamic": false,                         // If true, uses dynamicText template instead of text
+    "dynamicText": "🎫 {open} open tickets",  // Available placeholders: {open}, {total}, {closed}
+    "dynamicInterval": 5,                     // Update interval in minutes (only when dynamic: true)
     "text": "Support Tickets",
     "type": "WATCHING",                       // PLAYING, WATCHING, LISTENING, STREAMING, COMPETING
     "url": "",                                // Only for STREAMING type
     "status": "online"                        // online, idle, dnd, invisible
+  },
+
+  // ─── User Notifications ──────────────────────────────────────────────────────
+  "userNotifications": {
+    "enabled": true                           // Show a "🔕 Notify me" button in new tickets.
+                                              // Users opt in to receive a DM when staff first replies.
+                                              // Rate-limited to max 1 DM per 30 min per ticket.
   }
 }

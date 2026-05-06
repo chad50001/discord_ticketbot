@@ -225,6 +225,20 @@ async function openTicket(client, guild, user, ticketType, answers = []) {
 
   await channel.send({ content: pingContent || undefined, embeds: [embed], components: [buttons] });
 
+  // ── User notification opt-in button ──────────────────────────────────────────
+  if (cfg.userNotifications?.enabled) {
+    const { buildNotifyButton } = require('../components/buttons/notifyToggle');
+    const notifyRow = new ActionRowBuilder().addComponents(buildNotifyButton(false));
+    await channel.send({
+      content: `<@${user.id}>`,
+      embeds: [{
+        description: '🔕 Click the button below if you want to receive a **DM notification** when a staff member replies to your ticket.',
+        color: 0x5865f2,
+      }],
+      components: [notifyRow],
+    }).catch(() => null);
+  }
+
   return channel;
 }
 

@@ -1,31 +1,76 @@
 const fs   = require('fs');
 const path = require('path');
 
+// __dirname = src/utils  →  ../../config = project root / config  ✓
 const SNIPPETS_PATH = path.join(__dirname, '../../config/snippets.jsonc');
 
 let _cache = null;
 
-/**
- * Strips single-line // comments from a JSONC string.
- * Mirrors the approach used by the main config loader.
- */
-function stripComments(str) {
-  return str
-    .split('\n')
-    .map(line => {
-      // Remove inline // comments that are not inside a string value.
-      // Simple heuristic: strip everything after the first // that is
-      // not preceded by an odd number of unescaped quotes.
-      const stripped = line.replace(/\s*\/\/.*$/, '');
-      return stripped;
-    })
-    .join('\n');
+// ─── JSONC Parser ─────────────────────────────────────────────────────────────
+// Identical to the implementation in src/config.js.
+// Strips // and /* … */ comments while preserving content inside string literals
+// (e.g. URLs like https://docu.msk-scripts.de), then removes trailing commas.
+
+function stripJsonComments(text) {
+  let result   = '';
+  let i        = 0;
+  let inString = false;
+
+  while (i < text.length) {
+    const ch = text[i];
+
+    // Inside a string literal
+    if (inString) {
+      if (ch === '\\') {
+        result += ch + (text[i + 1] ?? '');
+        i += 2;
+        continue;
+      }
+      if (ch === '"') inString = false;
+      result += ch;
+      i++;
+      continue;
+    }
+
+    // Start of a string literal
+    if (ch === '"') {
+      inString = true;
+      result += ch;
+      i++;
+      continue;
+    }
+
+    // Single-line comment (//)
+    if (ch === '/' && text[i + 1] === '/') {
+      while (i < text.length && text[i] !== '\n') i++;
+      continue;
+    }
+
+    // Multi-line comment (/* … */)
+    if (ch === '/' && text[i + 1] === '*') {
+      i += 2;
+      while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) i++;
+      i += 2;
+      continue;
+    }
+
+    result += ch;
+    i++;
+  }
+
+  // Remove trailing commas before } or ]
+  result = result.replace(/,(\s*[}\]])/g, '$1');
+
+  return result;
 }
+
+// ─── Loader ───────────────────────────────────────────────────────────────────
 
 /**
  * Loads and validates snippets.jsonc.
- * Returns the parsed snippets array or throws on error.
- * Result is cached in memory; call clearCache() to reload.
+ * Result is cached in memory; call clearCache() to force a reload.
+ * @returns {Array} Parsed snippets array
+ * @throws {Error} If the file is missing, invalid JSON, or fails validation
  */
 function loadSnippets() {
   if (_cache) return _cache;
@@ -46,7 +91,7 @@ function loadSnippets() {
 
   let parsed;
   try {
-    parsed = JSON.parse(stripComments(raw));
+    parsed = JSON.parse(stripJsonComments(raw));
   } catch (err) {
     throw new Error(`[Snippets] Invalid JSON in snippets.jsonc: ${err.message}`);
   }
@@ -68,7 +113,7 @@ function loadSnippets() {
     }
   }
 
-  // Check for duplicate names (case-insensitive)
+  // Duplicate name check (case-insensitive)
   const seen = new Set();
   for (const s of parsed.snippets) {
     const key = s.name.toLowerCase();
@@ -82,44 +127,47 @@ function loadSnippets() {
   return _cache;
 }
 
-/**
- * Returns a single snippet by name (case-insensitive) or null if not found.
- */
-function getSnippet(name) {
-  const snippets = loadSnippets();
-  return snippets.find(s => s.name.toLowerCase() === name.toLowerCase()) ?? null;
-}
+// ─── Public API ───────────────────────────────────────────────────────────────
 
-/**
- * Returns all snippets.
- */
+/** Returns all snippets. */
 function getAllSnippets() {
   return loadSnippets();
 }
 
 /**
- * Clears the in-memory cache so snippets are reloaded from disk on next access.
+ * Returns a single snippet by name (case-insensitive), or null if not found.
+ * @param {string} name
+ */
+function getSnippet(name) {
+  return loadSnippets().find(s => s.name.toLowerCase() === name.toLowerCase()) ?? null;
+}
+
+/**
+ * Clears the in-memory cache so snippets.jsonc is re-read on the next call.
  */
 function clearCache() {
   _cache = null;
 }
 
 /**
- * Replaces all known placeholders in a snippet's content string.
+ * Replaces all supported placeholders in a snippet's content string.
  *
- * @param {string} content     - Raw snippet content
- * @param {Object} vars
- * @param {string} vars.user     - Ticket creator mention, e.g. "<@123456>"
- * @param {string} vars.staff    - Staff member mention, e.g. "<@789012>"
- * @param {string} vars.type     - Ticket type display name
- * @param {string} vars.priority - Current priority label, e.g. "🟡 Medium"
+ * Available placeholders:
+ *   {user}      → Ticket creator mention  (<@123456>)
+ *   {staff}     → Staff member mention    (<@789012>)
+ *   {type}      → Ticket type name        (e.g. "Support")
+ *   {priority}  → Current priority label  (e.g. "🟡 Medium")
+ *
+ * @param {string} content
+ * @param {{ user?: string, staff?: string, type?: string, priority?: string }} vars
+ * @returns {string}
  */
 function applyPlaceholders(content, { user = '', staff = '', type = '', priority = '' } = {}) {
   return content
-    .replace(/\{user\}/g, user)
-    .replace(/\{staff\}/g, staff)
-    .replace(/\{type\}/g, type)
+    .replace(/\{user\}/g,     user)
+    .replace(/\{staff\}/g,    staff)
+    .replace(/\{type\}/g,     type)
     .replace(/\{priority\}/g, priority);
 }
 
-module.exports = { loadSnippets, getSnippet, getAllSnippets, clearCache, applyPlaceholders };
+module.exports = { getAllSnippets, getSnippet, clearCache, applyPlaceholders };

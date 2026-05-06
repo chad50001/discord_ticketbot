@@ -103,7 +103,10 @@
     "snippet_not_in_ticket": "❌ Dieser Befehl kann nur in einem offenen Ticket verwendet werden.",
     "snippet_list_empty": "ℹ️ Es sind noch keine Snippets konfiguriert.\nKopiere `config/snippets.example.jsonc` nach `config/snippets.jsonc` und passe sie an.",
     "snippet_not_found": "❌ Snippet **{name}** nicht gefunden. Nutze `/snippet list` für eine Übersicht.",
-    "snippet_sent": "✅ Snippet **{name}** wurde gesendet."
+    "snippet_sent": "✅ Snippet **{name}** wurde gesendet.",
+    "ticketLocked": "🔒 Dieses Ticket wurde gesperrt. Du kannst keine Nachrichten senden, bis ein Staff-Member es entsperrt.",
+    "ticketUnlocked": "🔓 Dieses Ticket wurde entsperrt. Du kannst nun wieder Nachrichten senden.",
+    "broadcastSent": "✅ Broadcast wurde an **{count}** ticket(s) gesendet."
   },
   "priorities": {
     "low": "🟢 Niedrig",

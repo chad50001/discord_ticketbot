@@ -1,31 +1,16 @@
+/**
+ * Command: /snippet
+ * Send pre-defined canned responses into a ticket channel.
+ * Subcommands: send <name> | list
+ * Staff-only. Supports autocomplete.
+ */
 const {
   SlashCommandBuilder,
   EmbedBuilder,
-  PermissionFlagsBits,
+  MessageFlags,
 } = require('discord.js');
-
+const { getTicketByChannel } = require('../database');
 const { getAllSnippets, getSnippet, applyPlaceholders } = require('../utils/snippets');
-
-// ─── Helper ──────────────────────────────────────────────────────────────────
-
-/**
- * Checks whether a staff member has permission to use snippets in this channel.
- * Mirrors the staff-role check used by other commands (claim, note, …).
- */
-function isStaff(member, ticket, config) {
-  // Type-specific staff roles take precedence, fall back to global list
-  const staffRoles =
-    ticket?.staffRoles?.length
-      ? ticket.staffRoles
-      : config.rolesWhoHaveAccessToTheTickets ?? [];
-
-  return (
-    member.permissions.has(PermissionFlagsBits.Administrator) ||
-    staffRoles.some(roleId => member.roles.cache.has(roleId))
-  );
-}
-
-// ─── Command definition ───────────────────────────────────────────────────────
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -49,19 +34,20 @@ module.exports = {
         .setDescription('Show all available snippets')
     ),
 
-  // ── Autocomplete ───────────────────────────────────────────────────────────
-  async autocomplete(interaction) {
-    const focusedValue = interaction.options.getFocused().toLowerCase();
-    let choices = [];
+  // ── Autocomplete ────────────────────────────────────────────────────────────
+  async autocomplete(client, interaction) {
+    const focused = interaction.options.getFocused().toLowerCase();
+    let choices   = [];
 
     try {
-      const snippets = getAllSnippets();
-      choices = snippets
-        .filter(s => s.name.toLowerCase().includes(focusedValue) ||
-                     (s.description ?? '').toLowerCase().includes(focusedValue))
-        .slice(0, 25) // Discord autocomplete limit
+      choices = getAllSnippets()
+        .filter(s =>
+          s.name.toLowerCase().includes(focused) ||
+          (s.description ?? '').toLowerCase().includes(focused)
+        )
+        .slice(0, 25)
         .map(s => ({
-          name: `${s.name}${s.description ? ` — ${s.description}` : ''}`.slice(0, 100),
+          name:  `${s.name}${s.description ? ` — ${s.description}` : ''}`.slice(0, 100),
           value: s.name,
         }));
     } catch {
@@ -71,67 +57,67 @@ module.exports = {
     await interaction.respond(choices);
   },
 
-  // ── Execute ────────────────────────────────────────────────────────────────
-  async execute(interaction, client) {
-    const { options, channel, member, guild } = interaction;
-    const config = client.config;
-    const db     = client.db;
-    const t      = client.t.bind(client); // i18n helper
+  // ── Execute ─────────────────────────────────────────────────────────────────
+  async execute(client, interaction) {
+    const { options, channel, member } = interaction;
 
-    // ── Fetch ticket from DB ──────────────────────────────────────────────────
-    const ticket = db.getTicketByChannelId?.(channel.id) ?? null;
-
-    if (!ticket || ticket.status === 'closed') {
+    // ── Staff check ────────────────────────────────────────────────────────────
+    if (!client.isStaff(member)) {
       return interaction.reply({
-        content: t('snippet_not_in_ticket'),
-        ephemeral: true,
+        content: client.t('messages.noPermission'),
+        flags: MessageFlags.Ephemeral,
       });
     }
 
-    // ── Staff check ───────────────────────────────────────────────────────────
-    if (!isStaff(member, ticket, config)) {
+    // ── Must be inside an open ticket ──────────────────────────────────────────
+    const ticket = getTicketByChannel(interaction.channelId);
+
+    if (!ticket || ticket.status !== 'open') {
       return interaction.reply({
-        content: t('no_permission'),
-        ephemeral: true,
+        content: client.t('messages.snippet_not_in_ticket'),
+        flags: MessageFlags.Ephemeral,
       });
     }
 
     const sub = options.getSubcommand();
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // /snippet list
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── /snippet list ──────────────────────────────────────────────────────────
     if (sub === 'list') {
       let snippets;
       try {
         snippets = getAllSnippets();
       } catch (err) {
-        return interaction.reply({ content: `❌ ${err.message}`, ephemeral: true });
+        return interaction.reply({
+          content: `❌ ${err.message}`,
+          flags: MessageFlags.Ephemeral,
+        });
       }
 
       if (snippets.length === 0) {
         return interaction.reply({
-          content: t('snippet_list_empty'),
-          ephemeral: true,
+          content: client.t('messages.snippet_list_empty'),
+          flags: MessageFlags.Ephemeral,
         });
       }
 
       const embed = new EmbedBuilder()
         .setTitle('📋 Available Snippets')
-        .setColor(config.mainColor ?? '#5865F2')
+        .setColor(client.config.mainColor ?? '#5865F2')
         .setDescription(
           snippets
-            .map(s => `\`/snippet send ${s.name}\`\n> ${s.description ?? s.content.slice(0, 60).replace(/\n/g, ' ')}…`)
+            .map(s =>
+              `\`/snippet send ${s.name}\`\n> ${(s.description ?? s.content.slice(0, 60).replace(/\n/g, ' ')) + '…'}`
+            )
             .join('\n\n')
         )
-        .setFooter({ text: `${snippets.length} snippet${snippets.length !== 1 ? 's' : ''} available` });
+        .setFooter({
+          text: `${snippets.length} snippet${snippets.length !== 1 ? 's' : ''} available`,
+        });
 
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+      return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // /snippet send <name>
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── /snippet send <name> ───────────────────────────────────────────────────
     if (sub === 'send') {
       const name = options.getString('name', true);
 
@@ -139,28 +125,30 @@ module.exports = {
       try {
         snippet = getSnippet(name);
       } catch (err) {
-        return interaction.reply({ content: `❌ ${err.message}`, ephemeral: true });
+        return interaction.reply({
+          content: `❌ ${err.message}`,
+          flags: MessageFlags.Ephemeral,
+        });
       }
 
       if (!snippet) {
         return interaction.reply({
-          content: t('snippet_not_found', { name }),
-          ephemeral: true,
+          content: client.t('messages.snippet_not_found', { name }),
+          flags: MessageFlags.Ephemeral,
         });
       }
 
-      // Resolve placeholder values from DB + guild
-      const creatorId = ticket.userId ?? ticket.creatorId ?? null;
-      const typeConfig = config.ticketTypes?.find(tt => tt.codeName === ticket.type) ?? {};
+      // Resolve placeholders
+      const typeConfig = client.config.ticketTypes?.find(
+        tt => tt.codeName === ticket.type
+      ) ?? {};
 
-      const placeholders = {
-        user:     creatorId  ? `<@${creatorId}>`    : '',
-        staff:    member.id  ? `<@${member.id}>`    : '',
-        type:     typeConfig.name ?? ticket.type    ?? '',
-        priority: ticket.priority                   ?? '',
-      };
-
-      const content = applyPlaceholders(snippet.content, placeholders);
+      const content = applyPlaceholders(snippet.content, {
+        user:     `<@${ticket.creator_id}>`,
+        staff:    `<@${member.id}>`,
+        type:     typeConfig.name ?? ticket.type ?? '',
+        priority: ticket.priority ?? '',
+      });
 
       // Build message payload
       const payload = {};
@@ -168,22 +156,19 @@ module.exports = {
       if (snippet.embed) {
         const embed = new EmbedBuilder()
           .setDescription(content)
-          .setColor(snippet.embed.color ?? config.mainColor ?? '#5865F2');
-
+          .setColor(snippet.embed.color ?? client.config.mainColor ?? '#5865F2');
         if (snippet.embed.title) embed.setTitle(snippet.embed.title);
-
         payload.embeds = [embed];
       } else {
         payload.content = content;
       }
 
-      // Defer so we can send the snippet as a proper channel message
-      // (not an ephemeral — the point is everyone in the ticket sees it)
-      await interaction.deferReply({ ephemeral: true });
+      // Defer ephemerally, send snippet publicly, confirm back
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       await channel.send(payload);
 
       return interaction.editReply({
-        content: t('snippet_sent', { name: snippet.name }),
+        content: client.t('messages.snippet_sent', { name: snippet.name }),
       });
     }
   },

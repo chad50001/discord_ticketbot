@@ -72,6 +72,15 @@ function initDatabase() {
   if (!cols.includes('staff_reminded_at')) {
     db.exec('ALTER TABLE tickets ADD COLUMN staff_reminded_at INTEGER');
   }
+  if (!cols.includes('locked')) {
+    db.exec('ALTER TABLE tickets ADD COLUMN locked INTEGER NOT NULL DEFAULT 0');
+  }
+  if (!cols.includes('notify_on_reply')) {
+    db.exec('ALTER TABLE tickets ADD COLUMN notify_on_reply INTEGER NOT NULL DEFAULT 0');
+  }
+  if (!cols.includes('last_notify_sent')) {
+    db.exec('ALTER TABLE tickets ADD COLUMN last_notify_sent INTEGER');
+  }
 
   return db;
 }
@@ -167,6 +176,33 @@ function getTicketsNeedingStaffReminder(reminderMs) {
       AND last_activity < ?
       AND (staff_reminded_at IS NULL OR staff_reminded_at < ?)
   `).all(cutoff, cutoff);
+}
+
+function getAllOpenTickets(guildId, type = null) {
+  if (type) {
+    return db.prepare(
+      "SELECT * FROM tickets WHERE guild_id = ? AND status = 'open' AND type = ?"
+    ).all(guildId, type);
+  }
+  return db.prepare(
+    "SELECT * FROM tickets WHERE guild_id = ? AND status = 'open'"
+  ).all(guildId);
+}
+
+function lockTicket(channelId) {
+  return db.prepare('UPDATE tickets SET locked = 1 WHERE channel_id = ?').run(channelId);
+}
+
+function unlockTicket(channelId) {
+  return db.prepare('UPDATE tickets SET locked = 0 WHERE channel_id = ?').run(channelId);
+}
+
+function setNotifyOnReply(channelId, value) {
+  return db.prepare('UPDATE tickets SET notify_on_reply = ? WHERE channel_id = ?').run(value, channelId);
+}
+
+function setLastNotifySent(channelId) {
+  return db.prepare('UPDATE tickets SET last_notify_sent = ? WHERE channel_id = ?').run(Date.now(), channelId);
 }
 
 function getStats(guildId) {
@@ -274,8 +310,9 @@ function getRating(ticketId) {
 module.exports = {
   initDatabase,
   createTicket, getTotalTicketCount, getTicketByChannel, getTicketById,
-  getOpenTicketsByUser, closeTicket, claimTicket, unclaimTicket,
+  getOpenTicketsByUser, getAllOpenTickets, closeTicket, claimTicket, unclaimTicket,
   setPriority, setType, updateLastActivity, setStaffReminded,
+  lockTicket, unlockTicket, setNotifyOnReply, setLastNotifySent,
   getInactiveTickets, getTicketsNeedingStaffReminder,
   getStats, getUserStats,
   addToBlacklist, removeFromBlacklist, isBlacklisted, getBlacklist,

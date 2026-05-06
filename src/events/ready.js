@@ -1,5 +1,5 @@
 const { ActivityType } = require('discord.js');
-const { getInactiveTickets, getTicketsNeedingStaffReminder, closeTicket, setStaffReminded } = require('../database');
+const { getInactiveTickets, getTicketsNeedingStaffReminder, closeTicket, setStaffReminded, getStats } = require('../database');
 const { generateTranscript } = require('../utils/transcript');
 const { ticketClosedEmbed, ticketLogEmbed } = require('../utils/embeds');
 
@@ -34,15 +34,24 @@ module.exports = {
     // ── Bot status ────────────────────────────────────────────────────────────
     const { status: statusCfg } = client.config;
     if (statusCfg?.enabled) {
-      client.user.setPresence({
-        status: statusCfg.status ?? 'online',
-        activities: [{
-          name: statusCfg.text ?? 'Support Tickets',
-          type: ACTIVITY_TYPE_MAP[statusCfg.type] ?? ActivityType.Watching,
-          url:  statusCfg.url || undefined,
-        }],
-      });
-      client.logger.info(`[Ready] Status set: ${statusCfg.type} "${statusCfg.text}"`);
+      if (statusCfg.dynamic) {
+        // Dynamic: update periodically with live ticket count
+        const intervalMin = statusCfg.dynamicInterval ?? 5;
+        setInterval(() => updateDynamicStatus(client), intervalMin * 60_000);
+        setTimeout(() => updateDynamicStatus(client), 2_000); // initial update after cache is ready
+        client.logger.info(`[Ready] Dynamic status enabled — updates every ${intervalMin}min`);
+      } else {
+        // Static status
+        client.user.setPresence({
+          status: statusCfg.status ?? 'online',
+          activities: [{
+            name: statusCfg.text ?? 'Support Tickets',
+            type: ACTIVITY_TYPE_MAP[statusCfg.type] ?? ActivityType.Watching,
+            url:  statusCfg.url || undefined,
+          }],
+        });
+        client.logger.info(`[Ready] Status set: ${statusCfg.type} "${statusCfg.text}"`);
+      }
     }
 
     // ── Auto-close loop ───────────────────────────────────────────────────────
@@ -139,6 +148,33 @@ async function runAutoClose(client, thresholdMs, warnMs, excludeClaimed) {
     } catch (err) {
       client.logger.error(`[AutoClose] Error on ticket ${ticket.id}:`, err);
     }
+  }
+}
+
+// ─── Dynamic Status ─────────────────────────────────────────────────────────────
+
+async function updateDynamicStatus(client) {
+  const guildId = process.env.GUILD_ID;
+  if (!guildId) return;
+  try {
+    const stats        = getStats(guildId);
+    const statusCfg    = client.config.status;
+    const textTemplate = statusCfg.dynamicText ?? '🎫 {open} open tickets';
+    const text         = textTemplate
+      .replace(/\{open\}/g,   String(stats.open))
+      .replace(/\{total\}/g,  String(stats.total))
+      .replace(/\{closed\}/g, String(stats.closed));
+
+    client.user.setPresence({
+      status: statusCfg.status ?? 'online',
+      activities: [{
+        name: text,
+        type: ACTIVITY_TYPE_MAP[statusCfg.type] ?? ActivityType.Watching,
+        url:  statusCfg.url || undefined,
+      }],
+    });
+  } catch (err) {
+    client.logger.warn(`[DynamicStatus] Failed to update: ${err.message}`);
   }
 }
 

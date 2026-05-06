@@ -13,6 +13,14 @@ module.exports = {
         return;
       }
 
+      // ── Autocomplete ────────────────────────────────────────────────────────
+      if (interaction.isAutocomplete()) {
+        const command = client.commands.get(interaction.commandName);
+        if (!command?.autocomplete) return;
+        await command.autocomplete(client, interaction);
+        return;
+      }
+
       // ── Buttons, Select Menus, Modals ───────────────────────────────────────
       if (
         interaction.isButton() ||
