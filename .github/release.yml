@@ -17,7 +17,7 @@ changelog:
     - title: 🔒 Security
       labels:
         - security
-    - title: 🧹 Sonstiges
+    - title: 🧹 Miscellaneous
       labels:
         - "*"
   exclude:
