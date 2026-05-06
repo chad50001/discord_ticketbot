@@ -6,6 +6,7 @@
 
 A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLite** — no external database, no telemetry, full feature set out of the box.
 
+[![Version](https://img.shields.io/github/v/release/MSK-Scripts/discord_ticketbot?style=flat-square&label=Version&color=5eb131)](https://github.com/MSK-Scripts/discord_ticketbot/releases)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blueviolet?style=flat-square)](https://www.gnu.org/licenses/agpl-3.0)
 [![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933?style=flat-square&logo=node.js)](https://nodejs.org)
 [![Discord.js](https://img.shields.io/badge/Discord.js-v14-5865F2?style=flat-square&logo=discord)](https://discord.js.org)
@@ -43,6 +44,7 @@ A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLit
 | 🎮 Dynamic Bot Status | Automatically display the number of open tickets in the bot status |
 | 🌍 Multilingual | German and English included, easily extensible |
 | 🗄️ SQLite | No external database required — file is created automatically |
+| 🔄 Auto-Update Check | Checks for new GitHub releases on startup and notifies with update instructions |
 
 ---
 
@@ -174,7 +176,8 @@ discord_ticketbot/
         ├── transcript.js       # Self-contained HTML (avatars embedded as Base64)
         ├── mskApi.js
         ├── ticketActions.js
-        └── snippets.js         # Snippet loader & placeholder engine  ← new
+        ├── versionCheck.js     # Startup update check against GitHub releases
+        └── snippets.js         # Snippet loader & placeholder engine
 ```
 
 ---
@@ -286,7 +289,7 @@ sudo journalctl -u ticketbot.service -f
 | `sudo systemctl restart ticketbot.service` | Restart the bot |
 | `sudo systemctl enable ticketbot.service` | Enable autostart |
 | `sudo systemctl disable ticketbot.service` | Disable autostart |
-| `sudo journalctl -u ticketbot.service -f` | Follow live logs |
+| `sudo journalctl -u ticketbot.service -f --output=cat` | Follow live logs with colors |
 
 ---
 
@@ -418,6 +421,13 @@ Snippets support autocomplete — start typing the name or description to filter
 
 ```jsonc
 "ratingSystem": { "enabled": true, "dmUser": true, "ratingsChannelId": "CHANNEL_ID" }
+```
+
+### Startup Log Visibility
+
+```jsonc
+"showLog": true   // Show INFO log messages on startup (commands, events, components)
+                  // Set to false for a cleaner output in production
 ```
 
 ### Auto-Close

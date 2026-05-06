@@ -1,4 +1,7 @@
 {
+  // ─── Startup ─────────────────────────────────────────────────────────────────
+  "showLog": true,                   // Show INFO log messages on startup (commands, events, components)
+
   // ─── Bot Appearance ──────────────────────────────────────────────────────────
   "mainColor": "#5eb131",
   "lang": "en",                    // "de" or "en"

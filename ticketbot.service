@@ -12,6 +12,7 @@
 #   sudo systemctl restart ticketbot.service   # Neustart
 #   sudo systemctl stop    ticketbot.service   # Stoppen
 #   sudo journalctl -u ticketbot.service -f    # Live-Logs (journald)
+#   sudo journalctl -u ticketbot.service -f --output=cat   # Follow live logs with colors
 
 [Unit]
 Description=MSK Scripts Discord Ticket-Bot
@@ -45,9 +46,11 @@ RestartSec=10s
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 # stdout/stderr an journald weiterleiten (journalctl -u ticketbot abrufbar)
+# ANSI-Farben aktivieren: --output=cat beim Lesen oder SYSTEMD_COLORS=1
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=ticketbot
+Environment=FORCE_COLOR=1
 
 # ── Ressourcen & Sicherheit ───────────────────────────────────────────────────
 # Verhindert, dass der Bot Root-Rechte erlangen kann

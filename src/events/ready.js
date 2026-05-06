@@ -20,16 +20,8 @@ module.exports = {
     client.logger.info(`[Ready] Serving ${client.guilds.cache.size} guild(s).`);
 
     const reset  = '\x1b[0m';
-    const purple = '\x1b[38;2;157;101;254m';
     const gray   = '\x1b[90m';
     const green  = '\x1b[38;2;94;177;49m';
-    console.log('');
-    console.log(`${green}  ✔ MSK Ticket Bot successfully started!${reset}`);
-    console.log(`${gray}  ──────────────────────────────────────────${reset}`);
-    console.log(`${gray}  Bot       ${reset}${client.user.tag}`);
-    console.log(`${gray}  Guilds    ${reset}${client.guilds.cache.size}`);
-    console.log(`${gray}  Commands  ${reset}${client.commands.size}`);
-    console.log('');
 
     // ── Bot status ────────────────────────────────────────────────────────────
     const { status: statusCfg } = client.config;
@@ -75,6 +67,15 @@ module.exports = {
       setInterval(() => runStaffReminder(client, reminderMs), 15 * 60_000);
       runStaffReminder(client, reminderMs);
     }
+
+    // ── Startup summary (always last) ─────────────────────────────────────────
+    console.log('\x1b[0m');
+    console.log(`${green}  ✔ MSK Ticket Bot successfully started!${reset}`);
+    console.log(`${gray}  ──────────────────────────────────────────${reset}`);
+    console.log(`${gray}  Bot       ${reset}${client.user.tag}`);
+    console.log(`${gray}  Guilds    ${reset}${client.guilds.cache.size}`);
+    console.log(`${gray}  Commands  ${reset}${client.commands.size}`);
+    console.log('\x1b[0m');
   },
 };
 

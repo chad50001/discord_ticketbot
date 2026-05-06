@@ -19,8 +19,13 @@ function format(level, color, ...args) {
   console.log(ts, tag, ...args);
 }
 
+let _showLog = true;
+
 const logger = {
-  info:  (...args) => format('INFO ', COLORS.cyan,   ...args),
+  configure({ showLog }) {
+    _showLog = showLog ?? true;
+  },
+  info:  (...args) => { if (_showLog) format('INFO ', COLORS.cyan,   ...args); },
   warn:  (...args) => format('WARN ', COLORS.yellow, ...args),
   error: (...args) => format('ERROR', COLORS.red,    ...args),
   success: (...args) => format('OK   ', COLORS.green, ...args),

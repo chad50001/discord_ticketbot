@@ -260,26 +260,40 @@ When the bot starts you will see the following in the terminal:
 ...
                  https://github.com/MSK-Scripts/discord_ticketbot
 
-Checking API Key... [result]
+Checking for updates... up to date (v1.2.0)
+Checking API Key... API key valid → Premium+
 
 Connecting to Discord...
+
+[INFO] Database initialized.
+[INFO] Commands loaded...
+[OK  ] Slash commands registered successfully.
+...
+[OK  ] Logged in as BotName#1234
+[INFO] Serving 1 guild(s).
+[INFO] Status set: WATCHING "Support Tickets"
 
   ✔ MSK Ticket Bot successfully started!
   ──────────────────────────────────────────
   Bot       BotName#1234
-  Guilds    3
-  Commands  17
+  Guilds    1
+  Commands  16
 ```
+
+> **Tip:** To see colors when running as a systemd service, use:
+> ```bash
+> journalctl -u ticketbot -f --output=cat
+> ```
 
 ### Possible API Key results
 
 | Output | Meaning |
 |---|---|
-| `Kein API Key konfiguriert → Basic` | No `MSK_API_KEY` set in `.env` |
-| `API Key ungültig → Basic` | The key is incorrect or has been regenerated |
-| `MSK-Server nicht erreichbar → Basic` | www.msk-scripts.de is temporarily unreachable |
-| `API Key gültig → Premium` | ✅ Premium active |
-| `API Key gültig → Premium+` | ✅ Premium+ active |
+| `No API key configured → Basic` | No `MSK_API_KEY` set in `.env` |
+| `Invalid API key → Basic` | The key is incorrect or has been regenerated |
+| `MSK server unreachable → Basic` | www.msk-scripts.de is temporarily unreachable |
+| `API key valid → Premium` | ✅ Premium active |
+| `API key valid → Premium+` | ✅ Premium+ active |
 
 ---
 
