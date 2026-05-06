@@ -1,0 +1,112 @@
+{
+// ─────────────────────────────────────────────────────────────────────────────
+// Canned Responses / Snippets – discord_ticketbot
+// ─────────────────────────────────────────────────────────────────────────────
+// Copy this file to config/snippets.jsonc and adjust to your needs.
+//
+// Each snippet has:
+//   name        – Unique key used in /snippet send <name>  (lowercase, no spaces)
+//   description – Short hint shown in the autocomplete dropdown
+//   content     – The actual message text (supports Discord Markdown)
+//   embed       – Optional embed wrapper (set to null for a plain message)
+//
+// Placeholders replaced at send-time:
+//   {user}      – Mentions the ticket creator  (@Username)
+//   {staff}     – Mentions the staff using the command
+//   {type}      – Display name of the ticket type  (e.g. "Support")
+//   {priority}  – Current ticket priority           (e.g. "🟡 Medium")
+// ─────────────────────────────────────────────────────────────────────────────
+
+"snippets": [
+    {
+        // Sent at the start of a ticket to greet the user
+        "name": "welcome",
+        "description": "Welcome message at the start of a ticket",
+        "content": "Hey {user}! 👋\nThanks for opening a ticket. We've received your request and will get back to you as soon as possible.\n\nIn the meantime, feel free to add any details that might help us assist you faster.",
+        "embed": {
+            "title": "👋 Welcome",
+            "color": "#5865F2"
+        }
+    },
+    {
+        // Ask the user to provide more details before staff can help
+        "name": "moreinfo",
+        "description": "Ask the user for more details",
+        "content": "Hey {user},\nto assist you as quickly as possible, we need a bit more information:\n\n• When did the issue first occur?\n• What steps have you already tried?\n• Are there any error messages? If so, please share them here.\n\nThe more detail you provide, the faster we can help!",
+        "embed": {
+            "title": "ℹ️ More Information Needed",
+            "color": "#FEE75C"
+        }
+    },
+    {
+        // Link the user to the documentation
+        "name": "docs",
+        "description": "Link to the MSK-Scripts documentation",
+        "content": "Hey {user},\nyour question might already be answered in our documentation! 📖\n\n🔗 **https://docu.msk-scripts.de**\n\nIf you can't find what you're looking for, just let us know and we'll be happy to help.",
+        "embed": {
+            "title": "📖 Check the Documentation",
+            "color": "#5865F2"
+        }
+    },
+    {
+        // Confirm the issue has been resolved
+        "name": "solved",
+        "description": "Confirm the issue has been resolved",
+        "content": "Hey {user}, it looks like your issue has been resolved! 🎉\n\nIf you have any further questions, feel free to open a new ticket at any time.\n\nWe'd really appreciate a short rating after this ticket is closed — it helps us improve! ⭐",
+        "embed": null
+    },
+    {
+        // Inform the user the ticket is being moved to another team
+        "name": "forward",
+        "description": "Inform the user the ticket is being forwarded",
+        "content": "Hey {user},\nyour **{type}** ticket has been forwarded to the appropriate team. Please bear with us for a moment — someone will be with you shortly.",
+        "embed": {
+            "title": "🔀 Ticket Forwarded",
+            "color": "#57F287"
+        }
+    },
+    {
+        // Remind the user to read the server rules
+        "name": "rules",
+        "description": "Point the user to the server rules",
+        "content": "Hey {user},\nplease make sure to review our server rules before we continue. You can find them in <#CHANNEL_ID_HERE>.\n\nThank you for your understanding!",
+        "embed": null
+    },
+    {
+        // Warn the user the ticket will be closed due to inactivity
+        "name": "noresponse",
+        "description": "Warn that the ticket will be closed due to inactivity",
+        "content": "Hey {user},\nwe haven't heard back from you in a while. If we don't receive a response soon, we will close this ticket to keep things tidy.\n\nIf you still need help, simply open a new ticket — we're happy to assist! 😊",
+        "embed": {
+            "title": "⏰ No Response",
+            "color": "#ED4245"
+        }
+    },
+    {
+        // Let the user know their report/request has been logged
+        "name": "logged",
+        "description": "Confirm a bug report or request has been logged",
+        "content": "Hey {user},\nyour report has been logged and passed on to our development team. 📋\n\nWe'll look into it and keep you updated. Thank you for taking the time to report this!",
+        "embed": {
+            "title": "✅ Report Logged",
+            "color": "#57F287"
+        }
+    },
+    {
+        // Inform the user that the issue is a known one
+        "name": "known",
+        "description": "Let the user know the issue is already known",
+        "content": "Hey {user},\nwe're aware of this issue and our team is already working on a fix. 🔧\n\nWe appreciate your patience — we'll post an update as soon as it's resolved.",
+        "embed": {
+            "title": "🔧 Known Issue",
+            "color": "#FEE75C"
+        }
+    },
+    {
+        // Let the user know staff is currently unavailable
+        "name": "unavailable",
+        "description": "Let the user know staff is currently unavailable",
+        "content": "Hey {user},\nour support team is currently unavailable. We'll get back to you as soon as possible — thank you for your patience! 🙏",
+        "embed": null
+    }
+]}

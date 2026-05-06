@@ -99,7 +99,11 @@
     "blacklistRemoved": "✅ {user} wurde von der Blacklist entfernt.",
     "blacklistAlreadyAdded": "❌ {user} ist bereits auf der Blacklist.",
     "blacklistNotFound": "❌ {user} ist nicht auf der Blacklist.",
-    "configError": "⚠️ Fehler in der Konfiguration. Bitte den Bot-Betreiber kontaktieren!"
+    "configError": "⚠️ Fehler in der Konfiguration. Bitte den Bot-Betreiber kontaktieren!",
+    "snippet_not_in_ticket": "❌ Dieser Befehl kann nur in einem offenen Ticket verwendet werden.",
+    "snippet_list_empty": "ℹ️ Es sind noch keine Snippets konfiguriert.\nKopiere `config/snippets.example.jsonc` nach `config/snippets.jsonc` und passe sie an.",
+    "snippet_not_found": "❌ Snippet **{name}** nicht gefunden. Nutze `/snippet list` für eine Übersicht.",
+    "snippet_sent": "✅ Snippet **{name}** wurde gesendet."
   },
   "priorities": {
     "low": "🟢 Niedrig",
