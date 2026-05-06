@@ -1,0 +1,41 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Wichtig: komplette Git-History
+
+      - name: Get changed files & commits
+        id: changes
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            RANGE="HEAD"
+          else
+            RANGE="$PREV_TAG..HEAD"
+          fi
+
+          echo "## 📝 Commits" > release_notes.md
+          git log $RANGE --pretty=format:"- %s (%an)" >> release_notes.md
+
+          echo -e "\n\n## 📂 Geänderte Dateien" >> release_notes.md
+          git diff --name-status $RANGE | \
+            sed 's/^A/✅ Neu:/' | \
+            sed 's/^M/✏️ Geändert:/' | \
+            sed 's/^D/🗑️ Gelöscht:/' >> release_notes.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          token: ${{ secrets.GITHUB_TOKEN }}
