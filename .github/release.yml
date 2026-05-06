@@ -1,0 +1,25 @@
+changelog:
+  categories:
+    - title: 🎫 Ticket Features
+      labels:
+        - feature
+        - enhancement
+        - ticket
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+        - fix
+    - title: ✨ Improvements
+      labels:
+        - improvement
+        - dependencies
+        - refactor
+    - title: 🔒 Security
+      labels:
+        - security
+    - title: 🧹 Sonstiges
+      labels:
+        - "*"
+  exclude:
+    labels:
+      - skip-changelog
