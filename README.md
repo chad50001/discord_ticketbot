@@ -32,10 +32,15 @@ A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLit
 | ⏰ Staff Reminder | Automatic ping inside the ticket if no staff responds within X hours |
 | ⏰ Auto-Close | Automatically close inactive tickets with a configurable warning period |
 | 🔗 Transcript Links | Transcripts stored online and accessible via a public link |
-| 📄 HTML Transcript | Full HTML transcript with all messages, embeds and attachments |
+| 📄 HTML Transcript | Full self-contained HTML transcript — avatars embedded as Base64, no CDN required |
 | 🌐 Custom Domain | Premium users can serve transcripts under their own domain |
 | 📊 Statistics | Server-wide stats and detailed per-user stats via `/stats` |
 | 🚫 Blacklist | `/blacklist add/remove/list` to block users from opening tickets |
+| 💬 Canned Responses | Pre-defined snippets sent with one command — configured in `snippets.jsonc` |
+| 🔒 Ticket Lock | Lock/unlock a ticket to prevent the user from sending messages |
+| 📢 Broadcast | Send a message to all open ticket channels at once |
+| 🔔 User Notifications | Optional DM notification for users when a staff member replies |
+| 🎮 Dynamic Bot Status | Automatically display the number of open tickets in the bot status |
 | 🌍 Multilingual | German and English included, easily extensible |
 | 🗄️ SQLite | No external database required — file is created automatically |
 
@@ -102,68 +107,74 @@ discord_ticketbot/
 ├── .env.example                # Environment variable template
 ├── ticketbot.service           # systemd unit file for Linux servers
 ├── assets/                     # Static files (logo, banner images)
-│   ├── logo.png                # Panel logo thumbnail (place your own here)
-│   └── banner.png              # Panel banner image (place your own here)
+│   ├── logo.png
+│   └── banner.png
 ├── config/
-│   └── config.example.jsonc    # Configuration template (with comments)
+│   ├── config.example.jsonc    # Configuration template (with comments)
+│   └── snippets.example.jsonc  # Canned responses template
 ├── docs/
-│   ├── setup-en.md             # MSK Transcript Service setup guide (English)
-│   └── setup-de.md             # MSK Transcript Service setup guide (German)
+│   ├── setup-en.md
+│   └── setup-de.md
 ├── locales/
-│   ├── de.json                 # German
-│   └── en.json                 # English
+│   ├── de.json
+│   └── en.json
 ├── data/
 │   └── tickets.db              # SQLite database (auto-created)
 └── src/
-    ├── client.js               # Extended Discord Client
-    ├── config.js               # Config loader & validation
-    ├── database.js             # All DB operations (SQLite)
+    ├── client.js
+    ├── config.js
+    ├── database.js
     ├── handlers/
-    │   ├── commandHandler.js   # Loads & registers slash commands
-    │   ├── eventHandler.js     # Loads Discord events
-    │   └── componentHandler.js # Loads buttons, modals, menus
-    ├── commands/               # Slash commands
-    │   ├── setup.js            # /setup      – Send panel
-    │   ├── close.js            # /close      – Close ticket
-    │   ├── add.js              # /add        – Add user
-    │   ├── remove.js           # /remove     – Remove user
-    │   ├── claim.js            # /claim      – Claim ticket
-    │   ├── unclaim.js          # /unclaim    – Unclaim ticket
-    │   ├── move.js             # /move       – Move ticket
-    │   ├── rename.js           # /rename     – Rename channel
-    │   ├── transcript.js       # /transcript – Generate HTML transcript
-    │   ├── priority.js         # /priority   – Set priority (topic + embed)
-    │   ├── note.js             # /note       – Staff notes
-    │   ├── blacklist.js        # /blacklist  – Block users
-    │   └── stats.js            # /stats      – Statistics (server & user)
+    │   ├── commandHandler.js
+    │   ├── eventHandler.js
+    │   └── componentHandler.js
+    ├── commands/
+    │   ├── setup.js            # /setup
+    │   ├── close.js            # /close
+    │   ├── add.js              # /add
+    │   ├── remove.js           # /remove
+    │   ├── claim.js            # /claim
+    │   ├── unclaim.js          # /unclaim
+    │   ├── move.js             # /move
+    │   ├── rename.js           # /rename
+    │   ├── transcript.js       # /transcript
+    │   ├── priority.js         # /priority
+    │   ├── note.js             # /note
+    │   ├── blacklist.js        # /blacklist
+    │   ├── stats.js            # /stats
+    │   ├── snippet.js          # /snippet  ← new
+    │   ├── broadcast.js        # /broadcast  ← new
+    │   └── lock.js             # /lock  ← new
     ├── events/
     │   ├── ready.js            # Bot start, status, auto-close & staff reminder loop
-    │   ├── messageCreate.js    # Track last activity
-    │   └── interactionCreate.js # Route all interactions
+    │   ├── messageCreate.js    # Activity tracking + DM notifications
+    │   └── interactionCreate.js
     ├── components/
     │   ├── buttons/
-    │   │   ├── openTicket.js       # tb_open
-    │   │   ├── closeTicket.js      # tb_close
-    │   │   ├── claimTicket.js      # tb_claim
-    │   │   ├── unclaimTicket.js    # tb_unclaim
-    │   │   ├── moveTicket.js       # tb_move
-    │   │   ├── deleteTicket.js     # tb_delete
-    │   │   ├── deleteConfirm.js    # tb_deleteConfirm
-    │   │   ├── deleteCancel.js     # tb_deleteCancel
-    │   │   └── rateTicket.js       # tb_rate:N
+    │   │   ├── openTicket.js
+    │   │   ├── closeTicket.js
+    │   │   ├── claimTicket.js
+    │   │   ├── unclaimTicket.js
+    │   │   ├── moveTicket.js
+    │   │   ├── deleteTicket.js
+    │   │   ├── deleteConfirm.js
+    │   │   ├── deleteCancel.js
+    │   │   ├── rateTicket.js       # tb_rate:N
+    │   │   └── notifyToggle.js     # tb_notifyToggle  ← new
     │   ├── modals/
-    │   │   ├── closeReason.js      # tb_modalClose
-    │   │   └── ticketQuestions.js  # tb_modalQuestions:type
+    │   │   ├── closeReason.js
+    │   │   └── ticketQuestions.js
     │   └── menus/
-    │       ├── panelSelect.js      # tb_panelSelect
-    │       ├── ticketType.js       # tb_selectType
-    │       └── moveSelect.js       # tb_moveSelect
+    │       ├── panelSelect.js
+    │       ├── ticketType.js
+    │       └── moveSelect.js
     └── utils/
-        ├── logger.js           # Coloured console logger
-        ├── embeds.js           # All embed constructors
-        ├── transcript.js       # HTML transcript generator
-        ├── mskApi.js           # MSK Transcript Service API client
-        └── ticketActions.js    # Core logic: openTicket, performClose, performMove
+        ├── logger.js
+        ├── embeds.js
+        ├── transcript.js       # Self-contained HTML (avatars embedded as Base64)
+        ├── mskApi.js
+        ├── ticketActions.js
+        └── snippets.js         # Snippet loader & placeholder engine  ← new
 ```
 
 ---
@@ -196,7 +207,7 @@ TOKEN="your_bot_token"
 CLIENT_ID="your_application_id"
 GUILD_ID="your_server_id"
 
-# Optional — MSK Transcript Service (get your key at www.msk-scripts.de/verify)
+# Optional — MSK Transcript Service
 MSK_API_KEY="your_msk_api_key"
 MSK_API_URL="https://www.msk-scripts.de"
 ```
@@ -207,29 +218,29 @@ MSK_API_URL="https://www.msk-scripts.de"
 cp config/config.example.jsonc config/config.jsonc
 ```
 
-Edit `config/config.jsonc` as needed — all fields are commented.
+### 4. (Optional) Set up canned responses
 
-### 4. Start the bot
+```bash
+cp config/snippets.example.jsonc config/snippets.jsonc
+```
+
+Edit `config/snippets.jsonc` to define your team's canned responses. If the file does not exist, `/snippet` commands will show a setup hint.
+
+### 5. Start the bot
 
 ```bash
 npm start
 ```
 
-On first start the bot will automatically:
-- Create the SQLite database at `data/tickets.db`
-- Register all slash commands on your server
+### 6. Set up the panel
 
-### 5. Set up the panel
-
-Run `/setup` on your Discord server (Administrator permission required). The bot will send the ticket panel to the channel configured in `openTicketChannelId`.
+Run `/setup` on your Discord server (Administrator permission required).
 
 ---
 
 ## 🖥️ Autostart with systemd (Linux Server)
 
-The included `ticketbot.service` file lets the bot start automatically after a server reboot.
-
-### 1. Copy the bot files to the server
+### 1. Copy bot files
 
 ```bash
 sudo cp -r discord_ticketbot /opt/discord_ticketbot
@@ -237,7 +248,7 @@ sudo useradd -r -s /bin/false discord
 sudo chown -R discord:discord /opt/discord_ticketbot
 ```
 
-### 2. Set up .env on the server
+### 2. Set up `.env` on the server
 
 ```bash
 sudo nano /opt/discord_ticketbot/.env
@@ -247,10 +258,9 @@ sudo nano /opt/discord_ticketbot/.env
 
 ```bash
 which node
-# e.g.: /usr/bin/node
 ```
 
-If the path differs, adjust `ExecStart` in `ticketbot.service` accordingly.
+Adjust `ExecStart` in `ticketbot.service` if the path differs from `/usr/bin/node`.
 
 ### 4. Install the systemd unit
 
@@ -286,35 +296,36 @@ sudo journalctl -u ticketbot.service -f
 |---|---|---|
 | `/setup` | Administrator | Send the ticket panel |
 | `/close [reason]` | Configurable | Close the current ticket |
-| `/claim` | Staff | Claim a ticket — updates topic & embed, button toggles to Unclaim |
-| `/unclaim` | Staff | Release a claimed ticket — updates topic & embed, button toggles back |
+| `/claim` | Staff | Claim a ticket |
+| `/unclaim` | Staff | Release a claimed ticket |
 | `/move` | Staff | Move ticket to a different type/category |
 | `/add <user>` | Staff | Add a user to the ticket |
 | `/remove <user>` | Staff | Remove a user from the ticket |
 | `/rename <name>` | Staff | Rename the ticket channel |
 | `/transcript` | Staff | Generate an HTML transcript |
-| `/priority <level>` | Staff | Set ticket priority (updates channel topic & embed) |
+| `/priority <level>` | Staff | Set ticket priority |
 | `/note add <text>` | Staff | Add a staff note |
 | `/note list` | Staff | List all notes for this ticket |
-| `/stats` | Staff | Server-wide ticket statistics |
-| `/stats @user` | Staff | Detailed statistics for a specific user |
-| `/blacklist add` | Manage Guild | Block a user |
-| `/blacklist remove` | Manage Guild | Unblock a user |
-| `/blacklist list` | Manage Guild | Show the blacklist |
+| `/stats [user]` | Staff | Server-wide or per-user statistics |
+| `/blacklist add/remove/list` | Manage Guild | Manage the user blacklist |
+| `/snippet send <name>` | Staff | Send a canned response into the ticket |
+| `/snippet list` | Staff | Show all available snippets |
+| `/lock lock [reason]` | Staff | Lock ticket — user cannot send messages |
+| `/lock unlock` | Staff | Unlock ticket — restore user message access |
+| `/broadcast <message>` | Staff | Send a message to all open ticket channels |
 
 ---
 
 ## 🔘 Ticket Buttons
 
-Every ticket channel contains a button row at the top:
-
 | Button | Visible when | Description |
 |---|---|---|
-| 🔒 Close Ticket | Always (configurable) | Disables all buttons, generates transcript, closes & renames channel |
-| 🙋 Claim | `claimButton: true`, not yet claimed | Staff claims — topic & embed update, button becomes Unclaim |
-| 🙌 Unclaim | `claimButton: true`, already claimed | Staff releases — topic & embed update, button becomes Claim |
-| 🔀 Move | More than 1 ticket type configured | Staff opens type selection (staff only) |
-| 🗑️ Delete Ticket | After closing | Deletes the channel after confirmation |
+| 🔒 Close Ticket | Always (configurable) | Generates transcript, closes & renames channel |
+| 🙋 Claim | `claimButton: true`, unclaimed | Claim the ticket |
+| 🙌 Unclaim | `claimButton: true`, claimed | Release the ticket |
+| 🔀 Move | More than 1 type configured | Open type selection |
+| 🗑️ Delete Ticket | After closing | Delete channel after confirmation |
+| 🔕 Notify me | `userNotifications.enabled: true` | User opts in to DM notifications on staff reply |
 
 ---
 
@@ -328,11 +339,6 @@ Every ticket channel contains a button row at the top:
 }
 ```
 
-| Mode | Behaviour |
-|---|---|
-| `"BUTTON"` | A green button is shown. Clicking it opens an ephemeral select menu — always fresh, no Discord caching issue. |
-| `"SELECT_MENU"` | The select menu is shown directly in the panel. After every use it automatically resets, so users never need to restart Discord to open a second ticket of the same type. |
-
 ### Panel Logo & Banner
 
 ```jsonc
@@ -342,7 +348,83 @@ Every ticket channel contains a button row at the top:
 }
 ```
 
-Supported formats: PNG, JPG, GIF, WEBP. Run `/setup` again after adding or changing images.
+### Bot Status
+
+```jsonc
+"status": {
+  "enabled": true,
+  "dynamic": false,              // true = live ticket count in status
+  "dynamicText": "🎫 {open} open tickets", // placeholders: {open}, {total}, {closed}
+  "dynamicInterval": 5,          // update interval in minutes
+  "text": "Support Tickets",     // used when dynamic: false
+  "type": "WATCHING",            // PLAYING, WATCHING, LISTENING, STREAMING, COMPETING
+  "status": "online"
+}
+```
+
+### User Notifications
+
+```jsonc
+"userNotifications": {
+  "enabled": true   // Show a 🔕 "Notify me" button in new tickets.
+                    // User opts in → receives a DM when staff first replies.
+                    // Rate-limited to 1 DM per 30 minutes per ticket.
+}
+```
+
+### Canned Responses (Snippets)
+
+Snippets are defined in a separate file — **not** in `config.jsonc`:
+
+```bash
+cp config/snippets.example.jsonc config/snippets.jsonc
+```
+
+```jsonc
+{
+  "snippets": [
+    {
+      "name": "welcome",
+      "description": "Welcome message at the start of a ticket",
+      "content": "Hey {user}! 👋 Thanks for opening a ticket. We'll be with you shortly.",
+      "embed": {
+        "title": "👋 Welcome",
+        "color": "#5865F2"
+      }
+    },
+    {
+      "name": "docs",
+      "description": "Link to the MSK-Scripts documentation",
+      "content": "Hey {user}, check out our docs: https://docu.msk-scripts.de",
+      "embed": null
+    }
+  ]
+}
+```
+
+**Available placeholders:** `{user}` · `{staff}` · `{type}` · `{priority}`
+
+**Commands:** `/snippet send <name>` · `/snippet list`
+
+Snippets support autocomplete — start typing the name or description to filter.
+
+### Staff Reminder
+
+```jsonc
+"staffReminder": { "enabled": true, "afterHours": 4, "pingRoles": true }
+```
+
+### Rating System
+
+```jsonc
+"ratingSystem": { "enabled": true, "dmUser": true, "ratingsChannelId": "CHANNEL_ID" }
+```
+
+### Auto-Close
+
+```jsonc
+"autoClose": { "enabled": true, "inactiveHours": 48, "warnBeforeHours": 6, "excludeClaimed": true }
+```
 
 ### Channel State Overview
 
@@ -351,87 +433,35 @@ Supported formats: PNG, JPG, GIF, WEBP. Run `/setup` again after adding or chang
 | Ticket opened | `ticket-username` | `🟡 Medium` | Priority: 🟡 Medium |
 | `/priority urgent` | `ticket-username` | `🔴 Urgent` | Priority: 🔴 Urgent |
 | `/claim` | `ticket-username` | `🟡 Medium \| 🙋 Claimed by @Staff` | + Claimed by field |
-| `/unclaim` | `ticket-username` | `🟡 Medium` | field removed |
+| `/lock lock` | `ticket-username` | unchanged | lock notice posted |
 | Ticket closed | `closed-ticket-username` | unchanged | all buttons removed |
-
-> **Note on rate-limits:** Discord limits channel topic changes to 2 per 10 minutes. A warning is shown in the ticket and the update appears automatically once the limit resets.
-
-### Ticket Types
-
-```jsonc
-{
-  "codeName": "support",
-  "name": "Support",
-  "description": "...",
-  "emoji": "💡",
-  "color": "#ff0000",             // Hex color or "" to use mainColor
-  "categoryId": "123456789",
-  "ticketNameOption": "",         // USERNAME, USERID, TICKETCOUNT or ""
-  "customDescription": "...",     // Variables: REASON1, REASON2, USERNAME, USERID
-  "cantAccess": ["roleId"],
-  "staffRoles": [],               // Type-specific staff roles
-  "askQuestions": true,
-  "questions": [
-    { "label": "Question", "placeholder": "...", "style": "SHORT", "maxLength": 500 }
-  ]
-}
-```
-
-### Staff Reminder
-
-```jsonc
-"staffReminder": {
-  "enabled": true,
-  "afterHours": 4,
-  "pingRoles": true
-}
-```
-
-The bot checks all open tickets every **15 minutes**. Each ticket is only reminded **once**.
-
-### Rating System
-
-```jsonc
-"ratingSystem": {
-  "enabled": true,
-  "dmUser": true,
-  "ratingsChannelId": "CHANNEL_ID_HERE"
-}
-```
-
-### Auto-Close
-
-```jsonc
-"autoClose": {
-  "enabled": true,
-  "inactiveHours": 48,
-  "warnBeforeHours": 6,
-  "excludeClaimed": true
-}
-```
-
-### Statistics
-
-`/stats` shows server-wide numbers. `/stats @user` shows a detailed profile split into **👤 As a User** and **🛡️ As Staff**.
 
 ---
 
 ## 🗄️ Database Schema
 
-The SQLite database is created automatically at `data/tickets.db`. Existing databases are automatically migrated if columns are missing.
+The SQLite database is created automatically at `data/tickets.db`. Columns are added automatically via migration if they are missing.
 
 | Table | Contents |
 |---|---|
-| `tickets` | All tickets: status, type, priority, claim info, reminder, transcript |
+| `tickets` | All tickets: status, type, priority, claim, lock, notify, reminder, transcript |
 | `blacklist` | Blocked users with reason and timestamp |
 | `staff_notes` | Private staff notes per ticket |
 | `ratings` | Ratings (1–5 ⭐) with optional comment |
+
+**Columns added in recent updates:**
+
+| Column | Default | Purpose |
+|---|---|---|
+| `locked` | `0` | Whether the ticket is currently locked |
+| `notify_on_reply` | `0` | Whether the creator opted in to DM notifications |
+| `last_notify_sent` | `NULL` | Timestamp of the last notification DM (30-min cooldown) |
 
 ---
 
 ## 🌍 Adding a New Language
 
-1. Copy `locales/de.json`, e.g. as `locales/fr.json`
+1. Copy `locales/en.json`, e.g. as `locales/fr.json`
 2. Translate all strings
 3. Set `"lang": "fr"` in `config/config.jsonc`
 
@@ -439,7 +469,7 @@ The SQLite database is created automatically at `data/tickets.db`. Existing data
 
 ## 📖 Documentation
 
-Full documentation is available at **[docu.msk-scripts.de](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)**.
+Full documentation: **[docu.msk-scripts.de](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)**
 
 ---
 
