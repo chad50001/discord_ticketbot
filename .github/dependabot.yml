@@ -15,6 +15,14 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    # Block major version bumps that require manual migration/testing:
+    # - better-sqlite3: native bindings must be recompiled, API changes between majors
+    # - dotenv: config-loading behavior may change between major versions
+    ignore:
+      - dependency-name: "better-sqlite3"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "dotenv"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
