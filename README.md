@@ -12,7 +12,10 @@ A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLit
 [![Discord.js](https://img.shields.io/badge/Discord.js-v14-5865F2?style=flat-square&logo=discord)](https://discord.js.org)
 [![Documentation](https://img.shields.io/badge/Docs-docu.msk--scripts.de-5eb131?style=flat-square)](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)
 
+📄 [Readme (EN)](README.md) · [Readme (DE)](README_GER.md)
+
 </div>
+
 
 ---
 

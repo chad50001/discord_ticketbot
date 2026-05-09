@@ -12,7 +12,10 @@ Ein moderner, selbst-gehosteter Discord-Ticket-Bot auf Basis von **Discord.js v1
 [![Discord.js](https://img.shields.io/badge/Discord.js-v14-5865F2?style=flat-square&logo=discord)](https://discord.js.org)
 [![Dokumentation](https://img.shields.io/badge/Docs-docu.msk--scripts.de-5eb131?style=flat-square)](https://docu.msk-scripts.de/discord/discord_ticketbot/getting-started)
 
+📄 [Readme (EN)](README.md) · [Readme (DE)](README_GER.md)
+
 </div>
+
 
 ---
 
