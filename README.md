@@ -147,9 +147,9 @@ discord_ticketbot/
     │   ├── note.js             # /note
     │   ├── blacklist.js        # /blacklist
     │   ├── stats.js            # /stats
-    │   ├── snippet.js          # /snippet  ← new
-    │   ├── broadcast.js        # /broadcast  ← new
-    │   └── lock.js             # /lock  ← new
+    │   ├── snippet.js          # /snippet
+    │   ├── broadcast.js        # /broadcast
+    │   └── lock.js             # /lock
     ├── events/
     │   ├── ready.js            # Bot start, status, auto-close & staff reminder loop
     │   ├── messageCreate.js    # Activity tracking + DM notifications
@@ -165,7 +165,7 @@ discord_ticketbot/
     │   │   ├── deleteConfirm.js
     │   │   ├── deleteCancel.js
     │   │   ├── rateTicket.js       # tb_rate:N
-    │   │   └── notifyToggle.js     # tb_notifyToggle  ← new
+    │   │   └── notifyToggle.js     # tb_notifyToggle
     │   ├── modals/
     │   │   ├── closeReason.js
     │   │   └── ticketQuestions.js

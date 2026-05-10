@@ -260,7 +260,7 @@ Beim Start siehst du folgende Ausgabe im Terminal:
 ...
                  https://github.com/MSK-Scripts/discord_ticketbot
 
-Checking for updates... up to date (v1.2.0)
+Checking for updates... up to date (v1.3.0)
 Checking API Key... API key valid → Premium+
 
 Connecting to Discord...
