@@ -43,7 +43,7 @@ Premium-Nutzer erhalten zusätzlich herunterladbare Dateianhänge im Transkript 
 | Max. Anhangsgröße pro Ticket | — | 150 MB | 500 MB |
 | Eigene Domain | ❌ | ✅ | ✅ |
 | Speicherdauer | 30 Tage | 60 Tage | 90 Tage |
-| **Gehostetes Bot-Management** | ❌ | ❌ | ✅ |
+| **Gehostetes Bot-Management** | ❌ | ✅ | ✅ |
 
 > Premium und Premium+ werden über **GitHub Sponsors** freigeschaltet.  
 > Hier sponsern: [github.com/sponsors/MSK-Scripts](https://github.com/sponsors/MSK-Scripts)

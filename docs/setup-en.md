@@ -43,7 +43,7 @@ configure a **custom domain** so transcripts are served under their own URL.
 | Max. attachment size per ticket | — | 150 MB | 500 MB |
 | Custom domain | ❌ | ✅ | ✅ |
 | Storage duration | 30 days | 60 days | 90 days |
-| **Hosted bot management** | ❌ | ❌ | ✅ |
+| **Hosted bot management** | ❌ | ✅ | ✅ |
 
 > Premium and Premium+ are unlocked via **GitHub Sponsors**.  
 > Sponsor here: [github.com/sponsors/MSK-Scripts](https://github.com/sponsors/MSK-Scripts)

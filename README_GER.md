@@ -65,7 +65,7 @@ Anstatt Transkripte als Dateianhang per DM zu versenden, kann der Bot sie auf **
 | Max. Anhangsgröße pro Ticket | — | 150 MB | 500 MB |
 | Eigene Domain | ❌ | ✅ | ✅ |
 | Speicherdauer | 30 Tage | 60 Tage | 90 Tage |
-| **Gehostetes Bot-Management** | ❌ | ❌ | ✅ |
+| **Gehostetes Bot-Management** | ❌ | ✅ | ✅ |
 
 > Premium und Premium+ werden über **[GitHub Sponsors](https://github.com/sponsors/MSK-Scripts)** freigeschaltet.
 
@@ -92,9 +92,9 @@ MSK_API_URL="https://www.msk-scripts.de"
 
 ---
 
-## 🖥️ Gehostetes Bot-Management (Premium+)
+## 🖥️ Gehostetes Bot-Management (Premium & Premium+)
 
-Premium+-Kunden können ihre Bot-Instanz **vollständig von MSK Scripts hosten lassen** und direkt über das Dashboard unter **[msk-scripts.de/dashboard](https://www.msk-scripts.de/dashboard)** verwalten — kein SSH-Zugang oder Server-Wissen erforderlich.
+Premium- und Premium+-Kunden können ihre Bot-Instanz **vollständig von MSK Scripts hosten lassen** und direkt über das Dashboard unter **[msk-scripts.de/dashboard](https://www.msk-scripts.de/dashboard)** verwalten — kein SSH-Zugang oder Server-Wissen erforderlich.
 
 ![Dashboard — Gehostetes Bot-Management](assets/dashboard-hosted.png)
 

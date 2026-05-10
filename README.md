@@ -65,7 +65,7 @@ Instead of sending transcripts as file attachments via DM, the bot can upload th
 | Max. attachment size per ticket | — | 150 MB | 500 MB |
 | Custom domain | ❌ | ✅ | ✅ |
 | Storage duration | 30 days | 60 days | 90 days |
-| **Hosted bot management** | ❌ | ❌ | ✅ |
+| **Hosted bot management** | ❌ | ✅ | ✅ |
 
 > Premium and Premium+ are unlocked via **[GitHub Sponsors](https://github.com/sponsors/MSK-Scripts)**.
 
@@ -94,9 +94,9 @@ Premium users can serve transcripts under their own domain (e.g. `tickets.yourse
 
 ---
 
-## 🖥️ Hosted Bot Management (Premium+)
+## 🖥️ Hosted Bot Management (Premium & Premium+)
 
-Premium+ customers can have their bot instance **fully hosted by MSK Scripts** and manage it directly from the dashboard at **[msk-scripts.de/dashboard](https://www.msk-scripts.de/dashboard)** — no SSH access or server knowledge required.
+Premium and Premium+ customers can have their bot instance **fully hosted by MSK Scripts** and manage it directly from the dashboard at **[msk-scripts.de/dashboard](https://www.msk-scripts.de/dashboard)** — no SSH access or server knowledge required.
 
 ![Dashboard — Hosted Bot Management](assets/dashboard-hosted.png)
 
