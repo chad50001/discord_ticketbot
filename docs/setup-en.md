@@ -43,6 +43,7 @@ configure a **custom domain** so transcripts are served under their own URL.
 | Max. attachment size per ticket | — | 150 MB | 500 MB |
 | Custom domain | ❌ | ✅ | ✅ |
 | Storage duration | 30 days | 60 days | 90 days |
+| **Hosted bot management** | ❌ | ❌ | ✅ |
 
 > Premium and Premium+ are unlocked via **GitHub Sponsors**.  
 > Sponsor here: [github.com/sponsors/MSK-Scripts](https://github.com/sponsors/MSK-Scripts)
@@ -323,3 +324,6 @@ shown in the dashboard. You can check propagation using tools like [dnschecker.o
 **Is the SSL certificate free?**  
 Yes. SSL certificates are obtained automatically via **Let's Encrypt** (Certbot) at no cost.  
 They renew automatically before expiry.
+
+**What is "Hosted Bot Management"?**  
+Premium+ customers can have their bot instance fully hosted by MSK Scripts. The bot runs on the MSK server and can be managed entirely through the dashboard — including editing config files, starting/stopping/restarting the bot, running updates, and watching live log output in real time. Contact MSK Scripts via [Discord](https://discord.gg/5hHSBRHvJE) to arrange a hosted Premium+ plan.

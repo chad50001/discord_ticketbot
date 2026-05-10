@@ -43,6 +43,7 @@ Premium-Nutzer erhalten zusätzlich herunterladbare Dateianhänge im Transkript 
 | Max. Anhangsgröße pro Ticket | — | 150 MB | 500 MB |
 | Eigene Domain | ❌ | ✅ | ✅ |
 | Speicherdauer | 30 Tage | 60 Tage | 90 Tage |
+| **Gehostetes Bot-Management** | ❌ | ❌ | ✅ |
 
 > Premium und Premium+ werden über **GitHub Sponsors** freigeschaltet.  
 > Hier sponsern: [github.com/sponsors/MSK-Scripts](https://github.com/sponsors/MSK-Scripts)
@@ -323,3 +324,6 @@ im Dashboard angezeigte IP zeigt. Die Propagierung kannst du mit [dnschecker.org
 **Ist das SSL-Zertifikat kostenlos?**  
 Ja. SSL-Zertifikate werden automatisch über **Let's Encrypt** (Certbot) ohne Kosten eingerichtet  
 und erneuern sich automatisch vor Ablauf.
+
+**Was ist „Gehostetes Bot-Management"?**  
+Premium+-Kunden können ihren Bot vollständig von MSK Scripts hosten lassen. Der Bot läuft auf dem MSK-Server und kann komplett über das Dashboard verwaltet werden — Konfigurationsdateien bearbeiten, Bot starten/stoppen/neustarten, Updates einspielen und die Live-Log-Ausgabe in Echtzeit im Browser verfolgen. Melde dich über [Discord](https://discord.gg/5hHSBRHvJE) um ein gehostetes Premium+-Paket zu vereinbaren.
