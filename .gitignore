@@ -16,12 +16,6 @@ config/snippets.jsonc
 # Locales (contains translations)
 locales/main.json
 
-# Assets
-assets/*.png
-assets/*.jpg
-assets/*.giv
-assets/*.webp
-
 # Logs
 *.log
 
