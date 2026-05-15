@@ -64,7 +64,8 @@ Instead of sending transcripts as file attachments via DM, the bot can upload th
 | File attachments in transcript | ❌ | ✅ | ✅ |
 | Max. attachment size per ticket | — | 150 MB | 500 MB |
 | Custom domain | ❌ | ✅ | ✅ |
-| Storage duration | 30 days | 60 days | 90 days |
+| Storage duration | 30 days | 60 days | 120 days |
+| Uploads per hour | 30 | 60 | 300 |
 | **Hosted bot management** | ❌ | ✅ | ✅ |
 
 > Premium and Premium+ are unlocked via **[GitHub Sponsors](https://github.com/sponsors/MSK-Scripts)**.
