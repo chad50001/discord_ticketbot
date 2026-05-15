@@ -65,7 +65,7 @@ Anstatt Transkripte als Dateianhang per DM zu versenden, kann der Bot sie auf **
 | Max. Anhangsgröße pro Ticket | — | 150 MB | 500 MB |
 | Eigene Domain | ❌ | ✅ | ✅ |
 | Speicherdauer | 30 Tage | 60 Tage | 120 Tage |
-| Uploads pr Stunde | 30 | 60 | 300 |
+| Uploads pro Stunde | 30 | 60 | 300 |
 | **Gehostetes Bot-Management** | ❌ | ✅ | ✅ |
 
 > Premium und Premium+ werden über **[GitHub Sponsors](https://github.com/sponsors/MSK-Scripts)** freigeschaltet.
