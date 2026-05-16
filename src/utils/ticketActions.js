@@ -9,6 +9,7 @@ const {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  AttachmentBuilder,
 } = require('discord.js');
 const db = require('../database');
 const { generateTranscript } = require('./transcript');
@@ -257,8 +258,10 @@ async function performClose(client, channel, ticket, closer, reason) {
   } catch { /* ignore */ }
 
   // 2. Generate transcript & upload to MSK server
-  let transcriptHtml = null;
-  let transcriptUrl  = null;
+  let transcriptHtml         = null;
+  let transcriptUrl          = null;
+  let transcriptFallbackFile = null; // attached to DM/log if upload fails
+  let transcriptUploadError  = null;
 
   if (cfg.createTranscript) {
     try {
@@ -281,7 +284,23 @@ async function performClose(client, channel, ticket, closer, reason) {
         transcriptUrl = result.url;
         client.logger.info(`[performClose] Transcript uploaded: ${transcriptUrl} (tier: ${result.tier})`);
       } else {
+        transcriptUploadError = result.error;
         client.logger.error(`[performClose] Transcript upload failed: ${result.error}`);
+
+        // Fallback: ship the transcript as an .html file attachment so it isn't lost.
+        // Discord's per-file limit for bot uploads to non-boosted destinations is 10 MB; keep a safety margin.
+        const MAX_DM_BYTES = 9 * 1024 * 1024;
+        const htmlBytes    = Buffer.byteLength(transcriptHtml, 'utf-8');
+
+        if (htmlBytes <= MAX_DM_BYTES) {
+          transcriptFallbackFile = new AttachmentBuilder(
+            Buffer.from(transcriptHtml, 'utf-8'),
+            { name: `transcript-${ticket.id}.html` },
+          );
+          client.logger.info(`[performClose] Prepared transcript fallback file (${htmlBytes} bytes).`);
+        } else {
+          client.logger.warn(`[performClose] Transcript too large for DM fallback (${htmlBytes} bytes) — no file attached.`);
+        }
       }
     }
   }
@@ -315,24 +334,42 @@ async function performClose(client, channel, ticket, closer, reason) {
   if (client.config.logs && client.config.logsChannelId) {
     const logChannel = await channel.guild.channels.fetch(client.config.logsChannelId).catch(() => null);
     if (logChannel) {
-      await logChannel.send({
+      const logPayload = {
         embeds: [ticketLogEmbed(client, { ticket: updatedTicket, closer, reason, duration, transcriptUrl })],
-      }).catch(err => client.logger.error('[performClose] Failed to send log:', err));
+      };
+      // If the upload failed, also attach the raw transcript file so staff still has it.
+      if (transcriptFallbackFile) {
+        logPayload.files   = [transcriptFallbackFile];
+        logPayload.content = `⚠️ Transcript upload failed (\`${transcriptUploadError ?? 'unknown error'}\`) — attached as fallback file.`;
+      }
+      await logChannel.send(logPayload).catch(err => client.logger.error('[performClose] Failed to send log:', err));
     } else {
       client.logger.warn('[performClose] Log channel not found.');
     }
   }
 
   // 7. DM the ticket creator
-  if (cfg.dmUser) {
+  // Always attempt a DM when we have a fallback file, so the transcript isn't lost
+  // even if `dmUser` is disabled in the config.
+  if (cfg.dmUser || transcriptFallbackFile) {
     try {
       const creator = await channel.guild.members.fetch(ticket.creator_id);
-      await creator.user.send({
+
+      const dmPayload = {
         embeds: [ticketClosedDMEmbed(client, {
           count: ticket.id, type: ticket.type, closer, reason, transcriptUrl,
         })],
-      });
-      client.logger.info(`[performClose] DM sent to ${creator.user.tag}`);
+      };
+
+      if (transcriptFallbackFile) {
+        dmPayload.files   = [transcriptFallbackFile];
+        dmPayload.content = '⚠️ Our transcript service was temporarily unavailable, so your transcript is attached here as an HTML file.';
+      }
+
+      await creator.user.send(dmPayload);
+      client.logger.info(
+        `[performClose] DM sent to ${creator.user.tag}${transcriptFallbackFile ? ' (with fallback transcript file)' : ''}`
+      );
     } catch (err) {
       client.logger.warn(`[performClose] Could not DM creator (${ticket.creator_id}): ${err.message}`);
     }
