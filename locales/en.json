@@ -70,6 +70,11 @@
       "title": "Open Ticket",
       "label": "Reason for your ticket",
       "placeholder": "Please briefly describe your issue."
+    },
+    "rateComment": {
+      "title": "Rate Ticket",
+      "label": "Comment (optional)",
+      "placeholder": "Would you like to add anything to your rating?"
     }
   },
   "menus": {
@@ -119,6 +124,7 @@
     "2": "⭐⭐ Poor",
     "3": "⭐⭐⭐ Okay",
     "4": "⭐⭐⭐⭐ Good",
-    "5": "⭐⭐⭐⭐⭐ Excellent"
+    "5": "⭐⭐⭐⭐⭐ Excellent",
+    "commentField": "💬 Comment"
   }
 }

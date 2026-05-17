@@ -1,5 +1,8 @@
-const { EmbedBuilder, MessageFlags } = require('discord.js');
-const { getRating, addRating } = require('../../database');
+const {
+  ModalBuilder, TextInputBuilder, TextInputStyle,
+  ActionRowBuilder, MessageFlags,
+} = require('discord.js');
+const { getRating } = require('../../database');
 
 module.exports = {
   customId: 'tb_rate',
@@ -26,40 +29,22 @@ module.exports = {
       return interaction.reply({ content: '✅ Du hast dieses Ticket bereits bewertet.', flags: MessageFlags.Ephemeral });
     }
 
-    addRating(ticketId, interaction.user.id, rating, null);
+    const modal = new ModalBuilder()
+      .setCustomId(`tb_modalRate:${rating}:${ticketId}`)
+      .setTitle(client.t('modals.rateComment.title'));
 
-    const label = client.t(`ratings.${rating}`);
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId('rate_comment')
+          .setLabel(client.t('modals.rateComment.label'))
+          .setPlaceholder(client.t('modals.rateComment.placeholder'))
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(false)
+          .setMaxLength(1000)
+      )
+    );
 
-    await interaction.update({
-      embeds: [
-        new EmbedBuilder()
-          .setTitle('✅ Bewertung erhalten')
-          .setDescription(`Danke für dein Feedback! Du hast **${label}** gegeben.`)
-          .setColor(0x57f287)
-          .setTimestamp(),
-      ],
-      components: [],
-    }).catch(() => null);
-
-    const ratingsChannelId = client.config.ratingSystem?.ratingsChannelId;
-    if (ratingsChannelId) {
-      const ratingsChannel = await client.channels.fetch(ratingsChannelId).catch(() => null);
-      if (ratingsChannel) {
-        await ratingsChannel.send({
-          embeds: [
-            new EmbedBuilder()
-              .setTitle(`⭐ Neue Bewertung — Ticket #${ticketId}`)
-              .addFields(
-                { name: 'Nutzer',    value: `<@${interaction.user.id}>`, inline: true },
-                { name: 'Bewertung', value: label,                       inline: true },
-              )
-              .setColor(0xfee75c)
-              .setTimestamp(),
-          ],
-        }).catch(err => client.logger.warn(`[Rating] Could not post: ${err.message}`));
-      } else {
-        client.logger.warn(`[Rating] ratingsChannelId "${ratingsChannelId}" not found.`);
-      }
-    }
+    await interaction.showModal(modal);
   },
 };

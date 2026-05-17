@@ -63,3 +63,5 @@ data/*.db-wal
 # Config (contains IDs/tokens)
 config/config.jsonc
 config/snippets.jsonc
+.claude/
+CLAUDE.md
