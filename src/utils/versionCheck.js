@@ -1,7 +1,7 @@
 /**
  * versionCheck.js
  * Compares the local package.json version against the latest GitHub Release.
- * Uses Node 18+ native fetch — no extra dependencies needed.
+ * Uses native fetch (Node 22+) — no extra dependencies needed.
  */
 
 const REPO = 'MSK-Scripts/discord_ticketbot';

@@ -1,6 +1,6 @@
 {
   "name": "discord-ticketbot",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "A feature-rich, self-hosted Discord ticket bot built with Discord.js v14 and SQLite.",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "dev": "node --watch index.js"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "better-sqlite3": "^12.10.0",
