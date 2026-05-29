@@ -49,6 +49,15 @@ jobs:
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
+          # Prerelease-Erkennung: Tags mit Suffix (z. B. v2.0.0-rc.1, v2.0.0-beta)
+          # werden als Vorabversion markiert und NICHT als "latest" veröffentlicht.
+          if [[ "$TAG" == *-* ]]; then
+            echo "prerelease=true"  >> "$GITHUB_OUTPUT"
+            echo "ℹ️  '$TAG' wird als Prerelease veröffentlicht."
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # Checkout des Tags (falls vorhanden) bzw. des angegebenen Branches (für neue Tags).
       # fetch-depth: 0 holt komplette History + alle Tags.
       - name: Checkout
@@ -82,6 +91,25 @@ jobs:
           git push origin "refs/tags/$TAG"
           echo "✅ Tag '$TAG' erstellt und gepusht."
 
+      # Stellt sicher, dass die Version in package.json zum Tag passt
+      # (z. B. Tag v2.0.0 ↔ package.json "version": "2.0.0").
+      # Warnung statt Abbruch, damit Hotfix-Tags ohne package.json-Bump möglich bleiben.
+      - name: Version gegen Tag prüfen
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.tag.outputs.tag }}"
+          TAG_VERSION="${TAG#v}"
+          if [ -f package.json ]; then
+            PKG_VERSION="$(node -p "require('./package.json').version")"
+            if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+              echo "::warning::Tag-Version ($TAG_VERSION) weicht von package.json ($PKG_VERSION) ab. Wurde der Versions-Bump vergessen?"
+            else
+              echo "✅ Tag-Version stimmt mit package.json überein ($PKG_VERSION)."
+            fi
+          else
+            echo "::warning::package.json nicht gefunden — Versionsabgleich übersprungen."
+          fi
+
       - name: Modified files & Commits ermitteln
         run: |
           set -euo pipefail
@@ -98,14 +126,14 @@ jobs:
               "$PREV_TAG" "$CURR_TAG" "$REPO" "$PREV_TAG" "$CURR_TAG" > release_body.md
           fi
 
-          # Commits
-          # Use --pretty=format:"...%n" so every line (including the last) ends
-          # with a newline. The previous `while read` loop silently dropped the
-          # most recent commit, because `read` returns non-zero on a final line
-          # without a trailing newline — the loop body was skipped for it.
+          # Commits — nur die Betreffzeile (%s) je Commit (keine Bodies, bewusst kompakt).
+          # --pretty=format:"...%n" sorgt dafür, dass JEDE Zeile (auch die letzte) mit
+          # einem Newline endet; die frühere `while read`-Schleife verschluckte sonst
+          # den neuesten Commit (read liefert non-zero bei fehlendem abschließenden
+          # Newline → Schleifenkörper wurde übersprungen).
           echo "## 📝 Commits" >> release_body.md
           git log "$RANGE" \
-            --pretty=format:"- [\`%h\`](https://github.com/$REPO/commit/%H) %s (%an)%n" \
+            --pretty=format:"- [\`%h\`](https://github.com/$REPO/commit/%H) %s _(%an)_%n" \
             >> release_body.md
 
           # Modified files
@@ -124,6 +152,13 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
+          name: 🎫 ${{ steps.tag.outputs.tag }}
           body_path: release_body.md
-          generate_release_notes: true
+          # Eigener Body enthält bereits Commits (inkl. Beschreibungen),
+          # geänderte Dateien und Statistiken — GitHubs Auto-Notes würden die
+          # Commit-Liste nur duplizieren. Auf true setzen, falls die
+          # "New Contributors"-Sektion gewünscht ist.
+          generate_release_notes: false
+          prerelease: ${{ steps.tag.outputs.prerelease }}
+          make_latest: ${{ steps.tag.outputs.prerelease == 'true' && 'false' || 'true' }}
           token: ${{ secrets.GITHUB_TOKEN }}
