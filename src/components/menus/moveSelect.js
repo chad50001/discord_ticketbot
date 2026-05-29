@@ -18,7 +18,7 @@ module.exports = {
     const newType     = client.config.ticketTypes.find(t => t.codeName === newTypeCode);
 
     if (!newType) {
-      return interaction.reply({ content: '❌ Unbekannter Ticket-Typ.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.unknownTicketType'), flags: MessageFlags.Ephemeral });
     }
 
     const ticket = getTicketByChannel(interaction.channelId);
@@ -29,7 +29,7 @@ module.exports = {
       return interaction.reply({ content: client.t('messages.ticketAlreadyClosed'), flags: MessageFlags.Ephemeral });
     }
     if (ticket.type === newTypeCode) {
-      return interaction.reply({ content: '❌ Das Ticket ist bereits in diesem Typ.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.alreadyThisType'), flags: MessageFlags.Ephemeral });
     }
 
     // Guarantee non-null channel — interaction.channel can be null for select-menu
@@ -38,14 +38,14 @@ module.exports = {
       ?? await client.channels.fetch(interaction.channelId).catch(() => null);
 
     if (!channel) {
-      return interaction.reply({ content: '❌ Kanal nicht gefunden.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.channelNotFound'), flags: MessageFlags.Ephemeral });
     }
 
     // Acknowledge the selection and remove the select-menu
-    await interaction.update({ content: `⏳ Verschiebe zu **${newType.name}**...`, components: [] });
+    await interaction.update({ content: client.t('messages.movingTo', { type: newType.name }), components: [] });
 
     await performMove(client, channel, ticket, newType, interaction.user);
 
-    await interaction.editReply({ content: `✅ Ticket wurde zu **${newType.name}** verschoben.` });
+    await interaction.editReply({ content: client.t('messages.movedTo', { type: newType.name }) });
   },
 };

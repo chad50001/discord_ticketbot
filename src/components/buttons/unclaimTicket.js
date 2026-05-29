@@ -22,7 +22,7 @@ module.exports = {
       return interaction.reply({ content: client.t('messages.ticketAlreadyClosed'), flags: MessageFlags.Ephemeral });
     }
     if (!ticket.claimed_by) {
-      return interaction.reply({ content: '❌ Dieses Ticket ist nicht beansprucht.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.notClaimed'), flags: MessageFlags.Ephemeral });
     }
 
     unclaimTicket(interaction.channelId);

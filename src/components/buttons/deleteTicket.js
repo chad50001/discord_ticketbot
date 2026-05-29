@@ -17,16 +17,16 @@ module.exports = {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId('tb_deleteConfirm')
-        .setLabel('Ja, Ticket löschen')
+        .setLabel(client.t('buttons.deleteConfirm'))
         .setStyle(ButtonStyle.Danger),
       new ButtonBuilder()
         .setCustomId('tb_deleteCancel')
-        .setLabel('Abbrechen')
+        .setLabel(client.t('buttons.deleteCancel'))
         .setStyle(ButtonStyle.Secondary)
     );
 
     await interaction.reply({
-      content: '⚠️ **Bist du sicher?** Der Ticket-Kanal wird unwiderruflich gelöscht.',
+      content: client.t('messages.deleteConfirmPrompt'),
       components: [row],
       flags: MessageFlags.Ephemeral,
     });

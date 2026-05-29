@@ -58,7 +58,7 @@ module.exports = {
 
     if (!channel) {
       return interaction.reply({
-        content: '❌ Channel not found.',
+        content: client.t('messages.channelNotFound'),
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -69,7 +69,7 @@ module.exports = {
     if (sub === 'lock') {
       if (ticket.locked) {
         return interaction.reply({
-          content: '❌ This ticket is already locked.',
+          content: client.t('messages.alreadyLocked'),
           flags: MessageFlags.Ephemeral,
         });
       }
@@ -85,9 +85,9 @@ module.exports = {
 
       return interaction.reply({
         embeds: [{
-          description:
-            `🔒 **Ticket locked** by <@${interaction.user.id}>` +
-            (reason ? `\n**Reason:** ${reason}` : ''),
+          description: reason
+            ? client.t('embeds.locked.withReason', { user: `<@${interaction.user.id}>`, reason })
+            : client.t('embeds.locked.description', { user: `<@${interaction.user.id}>` }),
           color: 0xed4245,
         }],
       });
@@ -97,7 +97,7 @@ module.exports = {
     if (sub === 'unlock') {
       if (!ticket.locked) {
         return interaction.reply({
-          content: '❌ This ticket is not locked.',
+          content: client.t('messages.notLocked'),
           flags: MessageFlags.Ephemeral,
         });
       }
@@ -111,7 +111,7 @@ module.exports = {
 
       return interaction.reply({
         embeds: [{
-          description: `🔓 **Ticket unlocked** by <@${interaction.user.id}>`,
+          description: client.t('embeds.unlocked.description', { user: `<@${interaction.user.id}>` }),
           color: 0x57f287,
         }],
       });

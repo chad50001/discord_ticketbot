@@ -19,6 +19,10 @@ module.exports = {
         updateLastActivity(message.channelId);
       } catch { /* ignore */ }
 
+      // Ticket is active again → clear any auto-close warning flag so a future
+      // inactivity cycle triggers a fresh warning (see ready.js runAutoClose).
+      client.autoCloseWarned?.delete(message.channelId);
+
       // ── DM notification: alert creator when staff replies ────────────────────
       if (
         ticket.notify_on_reply &&
@@ -31,12 +35,11 @@ module.exports = {
             if (!ticket.last_notify_sent || now - ticket.last_notify_sent > NOTIFY_COOLDOWN_MS) {
               const creator = await message.guild.members.fetch(ticket.creator_id).catch(() => null);
               if (creator) {
+                const link = `https://discord.com/channels/${message.guildId}/${ticket.channel_id}`;
                 await creator.user.send({
                   embeds: [{
-                    title: '🔔 Staff replied to your ticket!',
-                    description:
-                      `A staff member has replied in your **${ticket.type}** ticket.\n\n` +
-                      `[🔗 Jump to ticket](https://discord.com/channels/${message.guildId}/${ticket.channel_id})`,
+                    title: client.t('messages.staffReplyTitle'),
+                    description: client.t('messages.staffReplyBody', { type: ticket.type, link }),
                     color: 0x5865f2,
                     timestamp: new Date().toISOString(),
                   }],

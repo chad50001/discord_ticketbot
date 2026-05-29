@@ -27,7 +27,7 @@ module.exports = {
 
     if (!ticketType) {
       await resetMenu(interaction, client);
-      return interaction.followUp({ content: '❌ Unbekannter Ticket-Typ.', flags: MessageFlags.Ephemeral });
+      return interaction.followUp({ content: client.t('messages.unknownTicketType'), flags: MessageFlags.Ephemeral });
     }
 
     const user = interaction.user;
@@ -55,7 +55,7 @@ module.exports = {
       if (blocked) {
         await resetMenu(interaction, client);
         return interaction.followUp({
-          content: '❌ Du hast keinen Zugriff auf diesen Ticket-Typ.',
+          content: client.t('messages.noAccessToType'),
           flags: MessageFlags.Ephemeral,
         });
       }
@@ -83,7 +83,7 @@ module.exports = {
 
     const channel = await openTicket(client, interaction.guild, user, ticketType, []);
     if (!channel) {
-      return interaction.followUp({ content: '❌ Ticket konnte nicht erstellt werden.', flags: MessageFlags.Ephemeral });
+      return interaction.followUp({ content: client.t('messages.ticketCreateFailed'), flags: MessageFlags.Ephemeral });
     }
 
     await interaction.followUp({

@@ -31,7 +31,7 @@ module.exports = {
       ?? await client.channels.fetch(interaction.channelId).catch(() => null);
 
     if (!channel) {
-      return interaction.reply({ content: '❌ Kanal nicht gefunden.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.channelNotFound'), flags: MessageFlags.Ephemeral });
     }
 
     const ticket = getTicketByChannel(interaction.channelId);
@@ -42,7 +42,7 @@ module.exports = {
     const priority = interaction.options.getString('stufe');
     if (ticket.priority === priority) {
       return interaction.reply({
-        content: `ℹ️ Die Priorität ist bereits auf **${client.t(`priorities.${priority}`)}** gesetzt.`,
+        content: client.t('messages.priorityAlreadySet', { priority: client.t(`priorities.${priority}`) }),
         flags: MessageFlags.Ephemeral,
       });
     }

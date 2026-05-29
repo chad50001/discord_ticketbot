@@ -12,7 +12,11 @@
     "delete": "Delete Ticket",
     "deleteEmoji": "🗑️",
     "transcript": "Transcript",
-    "transcriptEmoji": "📄"
+    "transcriptEmoji": "📄",
+    "deleteConfirm": "Yes, delete ticket",
+    "deleteCancel": "Cancel",
+    "notifyOn": "Notifications On",
+    "notifyOff": "Notify me when staff replies"
   },
   "embeds": {
     "panel": {
@@ -58,6 +62,57 @@
         "avgDuration": "Avg. Duration",
         "topStaff": "Top Staff"
       }
+    },
+    "userStats": {
+      "title": "📊 Statistics — {user}",
+      "userSection": "**👤 As User**",
+      "opened": "🎫 Tickets opened",
+      "openNow": "🟢 Currently open",
+      "closedAsCreator": "🔴 Closed",
+      "favoriteType": "🏷️ Most frequent type",
+      "avgRatingGiven": "⭐ Avg. rating given",
+      "staffSection": "**🛡️ As Staff**",
+      "closedAsStaff": "🔒 Tickets closed",
+      "claimed": "🙋 Tickets claimed",
+      "avgRatingReceived": "⭐ Avg. rating received"
+    },
+    "notifyOptIn": {
+      "description": "🔕 Click the button below if you want to receive a **DM notification** when a staff member replies to your ticket."
+    },
+    "moved": {
+      "description": "🔀 Ticket moved by {user} from **{from}** to **{to}**."
+    },
+    "locked": {
+      "description": "🔒 **Ticket locked** by {user}",
+      "withReason": "🔒 **Ticket locked** by {user}\n**Reason:** {reason}"
+    },
+    "unlocked": {
+      "description": "🔓 **Ticket unlocked** by {user}"
+    },
+    "staffNotes": {
+      "title": "📝 Staff Notes — Ticket #{count}",
+      "footer": "Showing {shown}/{total} notes"
+    },
+    "blacklistList": {
+      "title": "🚫 Ticket Blacklist",
+      "footer": "{count} entries"
+    },
+    "snippetList": {
+      "title": "📋 Available Snippets",
+      "footer": "{count} snippet(s) available"
+    },
+    "ratingReceived": {
+      "title": "✅ Rating received",
+      "description": "Thank you for your feedback! You rated **{label}**."
+    },
+    "ratingPost": {
+      "title": "⭐ New Rating — Ticket #{count}",
+      "userField": "User",
+      "ratingField": "Rating"
+    },
+    "broadcast": {
+      "author": "📢 Broadcast — {user}",
+      "plain": "📢 **Broadcast:** {message}"
     }
   },
   "modals": {
@@ -78,7 +133,8 @@
     }
   },
   "menus": {
-    "ticketType": "Select a ticket type"
+    "ticketType": "Select a ticket type",
+    "moveTarget": "Select a new ticket type..."
   },
   "messages": {
     "ticketCreated": "✅ Your ticket has been created: {channel}",
@@ -111,7 +167,50 @@
     "snippet_sent": "✅ Snippet **{name}** was sent.",
     "ticketLocked": "🔒 This ticket has been locked. You cannot send messages until a staff member unlocks it.",
     "ticketUnlocked": "🔓 This ticket has been unlocked. You may now send messages again.",
-    "broadcastSent": "✅ Broadcast sent to **{count}** ticket(s)."
+    "broadcastSent": "✅ Broadcast sent to **{count}** ticket(s).",
+    "internalError": "❌ An internal error occurred.",
+    "channelNotFound": "❌ Channel not found.",
+    "unknownTicketType": "❌ Unknown ticket type.",
+    "noAccessToType": "❌ You do not have access to this ticket type.",
+    "ticketCreateFailed": "❌ Ticket could not be created. Please try again.",
+    "renameEmpty": "❌ The name contains no valid characters (only letters, numbers and hyphens are allowed).",
+    "notClaimed": "❌ This ticket is not claimed.",
+    "alreadyThisType": "❌ This ticket is already of this type.",
+    "noOtherTypes": "❌ There are no other ticket types to move to.",
+    "blacklistEmpty": "✅ The blacklist is empty.",
+    "notesEmpty": "📝 No notes for this ticket.",
+    "notInvalidRating": "❌ Invalid rating.",
+    "ratingRefNotFound": "❌ Ticket reference not found.",
+    "alreadyRated": "✅ You have already rated this ticket.",
+    "onlyCreatorNotify": "❌ Only the ticket creator can toggle notifications.",
+    "deletingChannel": "🗑️ Channel is being deleted...",
+    "deleteCancelled": "✅ Deletion cancelled.",
+    "deleteConfirmPrompt": "⚠️ **Are you sure?** The ticket channel will be permanently deleted.",
+    "closingTicket": "⏳ **The ticket is being closed.** Please wait a moment while the transcript is generated...",
+    "selectCategory": "🎫 Please select a category:",
+    "alreadyLocked": "❌ This ticket is already locked.",
+    "notLocked": "❌ This ticket is not locked.",
+    "selectMoveTarget": "🔀 Where should this ticket be moved to?",
+    "movingTo": "⏳ Moving to **{type}**...",
+    "movedTo": "✅ Ticket moved to **{type}**.",
+    "transcriptFailed": "❌ Failed to generate the transcript.",
+    "priorityAlreadySet": "ℹ️ The priority is already set to **{priority}**.",
+    "selectMoveTargetCurrent": "🔀 **Move ticket** (current: **{type}**)\nWhere should this ticket be moved to?",
+    "autoCloseReason": "Automatically closed due to inactivity",
+    "staffReminderTitle": "⏰ **No staff response for {hours} hours!**",
+    "staffReminderBody": "Ticket <#{channel}> (type: **{type}**, priority: **{priority}**) is awaiting a response.",
+    "staffReplyTitle": "🔔 Staff replied to your ticket!",
+    "staffReplyBody": "A staff member has replied in your **{type}** ticket.\n\n[🔗 Jump to ticket]({link})",
+    "broadcastNoTickets": "ℹ️ No open tickets found.",
+    "broadcastResult": "✅ Broadcast sent to **{sent}** ticket(s).",
+    "broadcastResultFailed": "✅ Broadcast sent to **{sent}** ticket(s). *({failed} channel(s) failed)*",
+    "panelChannelNotFound": "❌ Channel `{channel}` not found. Please check `openTicketChannelId` in the config.",
+    "panelSent": "✅ Ticket panel sent to <#{channel}>.",
+    "panelSendFailed": "❌ Failed to send the panel. Are the bot permissions correct?",
+    "noReasonGiven": "No reason provided",
+    "userAddFailed": "❌ Failed to add the user.",
+    "userRemoveFailed": "❌ Failed to remove the user.",
+    "cannotRemoveCreator": "❌ The ticket creator cannot be removed."
   },
   "priorities": {
     "low": "🟢 Low",

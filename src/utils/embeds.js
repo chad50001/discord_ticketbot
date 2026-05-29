@@ -98,7 +98,7 @@ function ticketClosedEmbed(client, { closer, reason }) {
     .setTitle(client.t('embeds.ticketClosed.title'))
     .setDescription(client.t('embeds.ticketClosed.description', {
       closer: `<@${closer.id}>`,
-      reason: reason || 'Kein Grund angegeben',
+      reason: reason || client.t('messages.noReasonGiven'),
     }))
     .setColor(Colors.Red)
     .setTimestamp();
@@ -111,7 +111,7 @@ function ticketClosedDMEmbed(client, { count, type, closer, reason, transcriptUr
       count:  String(count),
       type,
       closer: `<@${closer.id}>`,
-      reason: reason || 'Kein Grund angegeben',
+      reason: reason || client.t('messages.noReasonGiven'),
     }))
     .setColor(Colors.Red)
     .setTimestamp();
@@ -139,7 +139,7 @@ function ticketLogEmbed(client, { ticket, closer, reason, duration, transcriptUr
   }
 
   embed.addFields(
-    { name: f.reason   ?? 'Reason',    value: reason || 'Kein Grund angegeben', inline: false },
+    { name: f.reason   ?? 'Reason',    value: reason || client.t('messages.noReasonGiven'), inline: false },
     { name: f.duration ?? 'Duration',  value: formatDuration(duration),         inline: true  },
     { name: f.messages ?? 'Messages',  value: String(ticket.message_count ?? 0), inline: true },
   );
@@ -182,7 +182,7 @@ function statsEmbed(client, stats) {
 
 function userStatsEmbed(client, user, stats) {
   const embed = new EmbedBuilder()
-    .setTitle(`📊 Statistiken — ${user.displayName ?? user.username}`)
+    .setTitle(client.t('embeds.userStats.title', { user: user.displayName ?? user.username }))
     .setThumbnail(user.displayAvatarURL({ extension: 'png', size: 64 }))
     .setColor(parseColor(client.config.mainColor))
     .setTimestamp();
@@ -192,12 +192,12 @@ function userStatsEmbed(client, user, stats) {
     : '—';
 
   embed.addFields(
-    { name: '\u200b',                  value: '**👤 Als Nutzer**',           inline: false },
-    { name: '🎫 Tickets eröffnet',     value: String(stats.opened),          inline: true  },
-    { name: '🟢 Davon offen',          value: String(stats.openNow),         inline: true  },
-    { name: '🔴 Davon geschlossen',    value: String(stats.closedAsCreator), inline: true  },
-    { name: '🏷️ Häufigster Typ',       value: stats.favoriteType ?? '—',     inline: true  },
-    { name: '⭐ Ø Bewertung gegeben',  value: avgRatingGiven,                inline: true  },
+    { name: '\u200b',                  value: client.t('embeds.userStats.userSection'), inline: false },
+    { name: client.t('embeds.userStats.opened'),          value: String(stats.opened),          inline: true  },
+    { name: client.t('embeds.userStats.openNow'),         value: String(stats.openNow),         inline: true  },
+    { name: client.t('embeds.userStats.closedAsCreator'), value: String(stats.closedAsCreator), inline: true  },
+    { name: client.t('embeds.userStats.favoriteType'),    value: stats.favoriteType ?? '—',     inline: true  },
+    { name: client.t('embeds.userStats.avgRatingGiven'),  value: avgRatingGiven,                inline: true  },
   );
 
   const hasStaffActivity = stats.closedAsStaff > 0 || stats.claimed > 0;
@@ -207,10 +207,10 @@ function userStatsEmbed(client, user, stats) {
       : '—';
 
     embed.addFields(
-      { name: '\u200b',                   value: '**🛡️ Als Staff**',          inline: false },
-      { name: '🔒 Tickets geschlossen',   value: String(stats.closedAsStaff), inline: true  },
-      { name: '🙋 Tickets beansprucht',   value: String(stats.claimed),       inline: true  },
-      { name: '⭐ Ø Bewertung erhalten',  value: avgStaffRating,              inline: true  },
+      { name: '\u200b',                   value: client.t('embeds.userStats.staffSection'), inline: false },
+      { name: client.t('embeds.userStats.closedAsStaff'),     value: String(stats.closedAsStaff), inline: true  },
+      { name: client.t('embeds.userStats.claimed'),           value: String(stats.claimed),       inline: true  },
+      { name: client.t('embeds.userStats.avgRatingReceived'), value: avgStaffRating,              inline: true  },
     );
   }
 

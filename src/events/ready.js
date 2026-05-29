@@ -85,6 +85,12 @@ async function runAutoClose(client, thresholdMs, warnMs, excludeClaimed) {
   const warnThreshold = thresholdMs - warnMs;
   let tickets;
 
+  // Tracks which channels already received the "will be auto-closed" warning.
+  // A Set (instead of dynamic client[...] properties) prevents an unbounded
+  // memory leak and lets us reset the flag when a ticket becomes active again
+  // (see messageCreate.js) so a re-inactive ticket gets warned a second time.
+  if (!client.autoCloseWarned) client.autoCloseWarned = new Set();
+
   try {
     tickets = getInactiveTickets(warnThreshold, excludeClaimed);
   } catch (err) {
@@ -101,7 +107,7 @@ async function runAutoClose(client, thresholdMs, warnMs, excludeClaimed) {
       const shouldClose = idleMs >= thresholdMs;
 
       if (shouldClose) {
-        const reason = 'Automatisch geschlossen wegen Inaktivität';
+        const reason = client.t('messages.autoCloseReason');
         let transcriptHtml = null;
 
         if (client.config.closeOption?.createTranscript) {
@@ -134,12 +140,14 @@ async function runAutoClose(client, thresholdMs, warnMs, excludeClaimed) {
           }
         }
 
+        // Ticket is gone — drop its warn flag so the Set never grows unbounded.
+        client.autoCloseWarned.delete(ticket.channel_id);
+
         client.logger.info(`[AutoClose] Closed ticket #${ticket.id}`);
       } else {
         // Send warning once when entering the warn window
-        const warnKey = `autoclose_warned_${ticket.channel_id}`;
-        if (!client[warnKey]) {
-          client[warnKey] = true;
+        if (!client.autoCloseWarned.has(ticket.channel_id)) {
+          client.autoCloseWarned.add(ticket.channel_id);
           const hoursLeft = Math.ceil((thresholdMs - idleMs) / 3_600_000);
           await channel.send(
             client.t('messages.autoCloseWarning', { hours: String(hoursLeft) })
@@ -207,8 +215,12 @@ async function runStaffReminder(client, reminderMs) {
 
       const content = [
         pingStr,
-        `⏰ **Keine Staff-Antwort seit ${hoursIdle} Stunden!**`,
-        `Ticket <#${ticket.channel_id}> (Typ: **${ticket.type}**, Priorität: **${ticket.priority}**) wartet auf eine Rückmeldung.`,
+        client.t('messages.staffReminderTitle', { hours: String(hoursIdle) }),
+        client.t('messages.staffReminderBody', {
+          channel:  ticket.channel_id,
+          type:     ticket.type,
+          priority: ticket.priority,
+        }),
       ].filter(Boolean).join('\n');
 
       await channel.send({ content }).catch(() => null);

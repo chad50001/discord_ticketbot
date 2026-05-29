@@ -6,6 +6,10 @@
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Neutral grey silhouette — always visible, zero external requests.
+// Used whenever an avatar cannot be fetched/embedded.
+const PLACEHOLDER_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='20' fill='%2336393f'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-size='18' fill='%2372767d'>?</text></svg>`;
+
 function escapeHtml(str) {
   if (!str) return '';
   return str
@@ -87,8 +91,7 @@ async function fetchAsDataUri(url) {
     const contentType = res.headers.get('content-type') || 'image/png';
     return `data:${contentType};base64,${buffer.toString('base64')}`;
   } catch {
-    // Neutral grey silhouette — always visible, zero external requests
-    return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='20' fill='%2336393f'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-size='18' fill='%2372767d'>?</text></svg>`;
+    return PLACEHOLDER_AVATAR;
   }
 }
 
@@ -122,7 +125,7 @@ async function buildAvatarMap(messages) {
     const result = results[i];
     avatarMap.set(
       id,
-      result.status === 'fulfilled' ? result.value : fetchAsDataUri.PLACEHOLDER
+      result.status === 'fulfilled' ? result.value : PLACEHOLDER_AVATAR
     );
   });
 

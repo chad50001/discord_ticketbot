@@ -8,7 +8,7 @@ module.exports = {
       return interaction.reply({ content: client.t('messages.onlyStaff'), flags: MessageFlags.Ephemeral });
     }
 
-    await interaction.reply({ content: '🗑️ Kanal wird gelöscht...', flags: MessageFlags.Ephemeral }).catch(() => null);
+    await interaction.reply({ content: client.t('messages.deletingChannel'), flags: MessageFlags.Ephemeral }).catch(() => null);
 
     try {
       await interaction.channel.delete(`Ticket gelöscht von ${interaction.user.tag}`);

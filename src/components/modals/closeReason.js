@@ -23,11 +23,11 @@ module.exports = {
       ?? await client.channels.fetch(interaction.channelId).catch(() => null);
 
     if (!channel) {
-      return interaction.reply({ content: '❌ Kanal nicht gefunden.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.channelNotFound'), flags: MessageFlags.Ephemeral });
     }
 
     await interaction.reply({
-      content: '⏳ **Das Ticket wird geschlossen.** Bitte warte einen Moment, das Transcript wird erstellt...',
+      content: client.t('messages.closingTicket'),
       flags: MessageFlags.Ephemeral,
     });
 

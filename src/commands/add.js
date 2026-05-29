@@ -26,7 +26,7 @@ module.exports = {
       await interaction.reply(client.t('messages.userAdded', { user: `<@${user.id}>` }));
     } catch (err) {
       client.logger.error('[Add] Error:', err);
-      await interaction.reply({ content: '❌ Fehler beim Hinzufügen des Nutzers.', flags: MessageFlags.Ephemeral });
+      await interaction.reply({ content: client.t('messages.userAddFailed'), flags: MessageFlags.Ephemeral });
     }
   },
 };

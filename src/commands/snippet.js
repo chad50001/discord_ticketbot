@@ -101,7 +101,7 @@ module.exports = {
       }
 
       const embed = new EmbedBuilder()
-        .setTitle('📋 Available Snippets')
+        .setTitle(client.t('embeds.snippetList.title'))
         .setColor(client.config.mainColor ?? '#5865F2')
         .setDescription(
           snippets
@@ -111,7 +111,7 @@ module.exports = {
             .join('\n\n')
         )
         .setFooter({
-          text: `${snippets.length} snippet${snippets.length !== 1 ? 's' : ''} available`,
+          text: client.t('embeds.snippetList.footer', { count: String(snippets.length) }),
         });
 
       return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

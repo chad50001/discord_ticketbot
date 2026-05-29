@@ -21,7 +21,7 @@ module.exports = {
     const user = interaction.options.getUser('nutzer');
     if (user.id === ticket.creator_id) {
       return interaction.reply({
-        content: '❌ Der Ersteller des Tickets kann nicht entfernt werden.',
+        content: client.t('messages.cannotRemoveCreator'),
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -31,7 +31,7 @@ module.exports = {
       await interaction.reply(client.t('messages.userRemoved', { user: `<@${user.id}>` }));
     } catch (err) {
       client.logger.error('[Remove] Error:', err);
-      await interaction.reply({ content: '❌ Fehler beim Entfernen des Nutzers.', flags: MessageFlags.Ephemeral });
+      await interaction.reply({ content: client.t('messages.userRemoveFailed'), flags: MessageFlags.Ephemeral });
     }
   },
 };

@@ -19,12 +19,12 @@ module.exports = {
     const ticketType = client.config.ticketTypes.find(t => t.codeName === typeCode);
 
     if (!ticketType) {
-      return interaction.reply({ content: '❌ Unbekannter Ticket-Typ.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.unknownTicketType'), flags: MessageFlags.Ephemeral });
     }
 
-    const answers = (ticketType.questions ?? []).map(q => {
-      const key = q.label.toLowerCase().replace(/\s+/g, '_').substring(0, 45);
-      try { return interaction.fields.getTextInputValue(key) ?? ''; } catch { return ''; }
+    // Keys must match the index-based custom IDs set in buildQuestionsModal (q_0 … q_4).
+    const answers = (ticketType.questions ?? []).slice(0, 5).map((q, i) => {
+      try { return interaction.fields.getTextInputValue(`q_${i}`) ?? ''; } catch { return ''; }
     });
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -46,7 +46,7 @@ module.exports = {
 
     const channel = await openTicket(client, interaction.guild, interaction.user, ticketType, answers);
     if (!channel) {
-      return interaction.editReply('❌ Ticket konnte nicht erstellt werden. Bitte versuche es erneut.');
+      return interaction.editReply(client.t('messages.ticketCreateFailed'));
     }
 
     // Show success for 10 seconds, then auto-delete

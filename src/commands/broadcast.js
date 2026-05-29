@@ -6,6 +6,7 @@
  */
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const { getAllOpenTickets } = require('../database');
+const { parseColor } = require('../utils/embeds');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -48,9 +49,7 @@ module.exports = {
     const tickets = getAllOpenTickets(interaction.guildId, typeFilter);
 
     if (tickets.length === 0) {
-      return interaction.editReply(
-        `ℹ️ No open tickets found${typeFilter ? ` for type \`${typeFilter}\`` : ''}.`
-      );
+      return interaction.editReply(client.t('messages.broadcastNoTickets'));
     }
 
     let sent   = 0;
@@ -66,15 +65,15 @@ module.exports = {
               embeds: [
                 new EmbedBuilder()
                   .setAuthor({
-                    name:    `📢 Broadcast — ${interaction.user.username}`,
+                    name:    client.t('embeds.broadcast.author', { user: interaction.user.username }),
                     iconURL: interaction.user.displayAvatarURL(),
                   })
                   .setDescription(message)
-                  .setColor(client.config.mainColor ?? '#5865F2')
+                  .setColor(parseColor(client.config.mainColor))
                   .setTimestamp(),
               ],
             }
-          : { content: `📢 **Broadcast:** ${message}` };
+          : { content: client.t('embeds.broadcast.plain', { message }) };
 
         await channel.send(payload);
         sent++;
@@ -84,9 +83,9 @@ module.exports = {
     }
 
     return interaction.editReply(
-      `✅ Broadcast sent to **${sent}** ticket${sent !== 1 ? 's' : ''}` +
-      (failed > 0 ? ` *(${failed} channel${failed !== 1 ? 's' : ''} failed)*` : '') +
-      '.'
+      failed > 0
+        ? client.t('messages.broadcastResultFailed', { sent: String(sent), failed: String(failed) })
+        : client.t('messages.broadcastResult', { sent: String(sent) })
     );
   },
 };

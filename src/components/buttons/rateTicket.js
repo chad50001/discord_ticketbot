@@ -8,25 +8,29 @@ module.exports = {
   customId: 'tb_rate',
 
   async execute(client, interaction) {
-    const rating = parseInt(interaction.customId.split(':')[1], 10);
+    const parts  = interaction.customId.split(':');
+    const rating = parseInt(parts[1], 10);
 
     if (isNaN(rating) || rating < 1 || rating > 5) {
-      return interaction.reply({ content: '❌ Ungültige Bewertung.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.notInvalidRating'), flags: MessageFlags.Ephemeral });
     }
 
-    let ticketId = null;
-    const embed = interaction.message?.embeds?.[0];
-    if (embed?.description) {
-      const match = embed.description.match(/#(\d+)/);
+    // Primary: ticket id encoded in the custom ID (tb_rate:{rating}:{ticketId}).
+    // Fallback: parse it from the embed description (legacy messages sent before
+    // the id was added to the custom ID).
+    let ticketId = parts[2] ? parseInt(parts[2], 10) : NaN;
+    if (isNaN(ticketId)) {
+      const embed = interaction.message?.embeds?.[0];
+      const match = embed?.description?.match(/#(\d+)/);
       if (match) ticketId = parseInt(match[1], 10);
     }
 
-    if (!ticketId) {
-      return interaction.reply({ content: '❌ Ticket-Referenz nicht gefunden.', flags: MessageFlags.Ephemeral });
+    if (isNaN(ticketId)) {
+      return interaction.reply({ content: client.t('messages.ratingRefNotFound'), flags: MessageFlags.Ephemeral });
     }
 
     if (getRating(ticketId)) {
-      return interaction.reply({ content: '✅ Du hast dieses Ticket bereits bewertet.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.alreadyRated'), flags: MessageFlags.Ephemeral });
     }
 
     const modal = new ModalBuilder()

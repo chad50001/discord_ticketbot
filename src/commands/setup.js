@@ -7,6 +7,7 @@ const {
   StringSelectMenuOptionBuilder,
   AttachmentBuilder,
   PermissionFlagsBits,
+  MessageFlags,
 } = require('discord.js');
 const path = require('path');
 const fs   = require('fs');
@@ -19,15 +20,13 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(client, interaction) {
-    await interaction.deferReply({ flags: 64 });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const channelId = client.config.openTicketChannelId;
     const channel   = await interaction.guild.channels.fetch(channelId).catch(() => null);
 
     if (!channel) {
-      return interaction.editReply(
-        `❌ Kanal \`${channelId}\` nicht gefunden. Bitte \`openTicketChannelId\` in der Config prüfen.`
-      );
+      return interaction.editReply(client.t('messages.panelChannelNotFound', { channel: channelId }));
     }
 
     const embed = panelEmbed(client);
@@ -94,10 +93,10 @@ module.exports = {
 
     try {
       await channel.send({ embeds: [embed], components: [row], files });
-      await interaction.editReply(`✅ Ticket-Panel wurde in <#${channel.id}> gesendet.`);
+      await interaction.editReply(client.t('messages.panelSent', { channel: channel.id }));
     } catch (err) {
       client.logger.error('[Setup] Failed to send panel:', err);
-      await interaction.editReply('❌ Fehler beim Senden des Panels. Sind die Bot-Berechtigungen korrekt?');
+      await interaction.editReply(client.t('messages.panelSendFailed'));
     }
   },
 };

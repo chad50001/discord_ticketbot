@@ -55,7 +55,7 @@ module.exports = {
         .addOptions(options);
 
       return interaction.reply({
-        content: '🎫 Bitte wähle eine Kategorie:',
+        content: client.t('messages.selectCategory'),
         components: [new ActionRowBuilder().addComponents(menu)],
         flags: MessageFlags.Ephemeral,
       });
@@ -74,7 +74,7 @@ module.exports = {
 
     const channel = await openTicket(client, interaction.guild, user, ticketType, []);
     if (!channel) {
-      return interaction.editReply('❌ Ticket konnte nicht erstellt werden.');
+      return interaction.editReply(client.t('messages.ticketCreateFailed'));
     }
 
     await interaction.editReply(client.t('messages.ticketCreated', { channel: `<#${channel.id}>` }));
@@ -92,10 +92,12 @@ function buildQuestionsModal(ticketType) {
     .setCustomId(`tb_modalQuestions:${ticketType.codeName}`)
     .setTitle(ticketType.name.substring(0, 45));
 
-  const rows = ticketType.questions.slice(0, 5).map(q =>
+  const rows = ticketType.questions.slice(0, 5).map((q, i) =>
     new ActionRowBuilder().addComponents(
       new TextInputBuilder()
-        .setCustomId(q.label.toLowerCase().replace(/\s+/g, '_').substring(0, 45))
+        // Index-based custom IDs (q_0 … q_4) guarantee uniqueness — deriving them
+        // from the label could collide when two labels normalise to the same string.
+        .setCustomId(`q_${i}`)
         .setLabel(q.label.substring(0, 45))
         .setPlaceholder(q.placeholder?.substring(0, 100) ?? '')
         .setStyle(q.style === 'PARAGRAPH' ? TextInputStyle.Paragraph : TextInputStyle.Short)

@@ -12,7 +12,11 @@
     "delete": "Ticket löschen",
     "deleteEmoji": "🗑️",
     "transcript": "Transcript",
-    "transcriptEmoji": "📄"
+    "transcriptEmoji": "📄",
+    "deleteConfirm": "Ja, Ticket löschen",
+    "deleteCancel": "Abbrechen",
+    "notifyOn": "Benachrichtigungen an",
+    "notifyOff": "Benachrichtige mich bei Staff-Antwort"
   },
   "embeds": {
     "panel": {
@@ -58,6 +62,57 @@
         "avgDuration": "Ø Dauer",
         "topStaff": "Top Staff"
       }
+    },
+    "userStats": {
+      "title": "📊 Statistiken — {user}",
+      "userSection": "**👤 Als Nutzer**",
+      "opened": "🎫 Tickets eröffnet",
+      "openNow": "🟢 Davon offen",
+      "closedAsCreator": "🔴 Davon geschlossen",
+      "favoriteType": "🏷️ Häufigster Typ",
+      "avgRatingGiven": "⭐ Ø Bewertung gegeben",
+      "staffSection": "**🛡️ Als Staff**",
+      "closedAsStaff": "🔒 Tickets geschlossen",
+      "claimed": "🙋 Tickets beansprucht",
+      "avgRatingReceived": "⭐ Ø Bewertung erhalten"
+    },
+    "notifyOptIn": {
+      "description": "🔕 Klicke auf den Button unten, wenn du eine **DM-Benachrichtigung** erhalten möchtest, sobald ein Staff-Mitglied auf dein Ticket antwortet."
+    },
+    "moved": {
+      "description": "🔀 Ticket wurde von {user} von **{from}** zu **{to}** verschoben."
+    },
+    "locked": {
+      "description": "🔒 **Ticket gesperrt** von {user}",
+      "withReason": "🔒 **Ticket gesperrt** von {user}\n**Grund:** {reason}"
+    },
+    "unlocked": {
+      "description": "🔓 **Ticket entsperrt** von {user}"
+    },
+    "staffNotes": {
+      "title": "📝 Staff-Notizen — Ticket #{count}",
+      "footer": "{shown}/{total} Notizen angezeigt"
+    },
+    "blacklistList": {
+      "title": "🚫 Ticket-Blacklist",
+      "footer": "{count} Einträge"
+    },
+    "snippetList": {
+      "title": "📋 Verfügbare Snippets",
+      "footer": "{count} Snippet(s) verfügbar"
+    },
+    "ratingReceived": {
+      "title": "✅ Bewertung erhalten",
+      "description": "Danke für dein Feedback! Du hast **{label}** gegeben."
+    },
+    "ratingPost": {
+      "title": "⭐ Neue Bewertung — Ticket #{count}",
+      "userField": "Nutzer",
+      "ratingField": "Bewertung"
+    },
+    "broadcast": {
+      "author": "📢 Broadcast — {user}",
+      "plain": "📢 **Broadcast:** {message}"
     }
   },
   "modals": {
@@ -78,7 +133,8 @@
     }
   },
   "menus": {
-    "ticketType": "Ticket-Typ auswählen"
+    "ticketType": "Ticket-Typ auswählen",
+    "moveTarget": "Neuen Ticket-Typ auswählen..."
   },
   "messages": {
     "ticketCreated": "✅ Dein Ticket wurde geöffnet: {channel}",
@@ -111,7 +167,50 @@
     "snippet_sent": "✅ Snippet **{name}** wurde gesendet.",
     "ticketLocked": "🔒 Dieses Ticket wurde gesperrt. Du kannst keine Nachrichten senden, bis ein Staff-Member es entsperrt.",
     "ticketUnlocked": "🔓 Dieses Ticket wurde entsperrt. Du kannst nun wieder Nachrichten senden.",
-    "broadcastSent": "✅ Broadcast wurde an **{count}** ticket(s) gesendet."
+    "broadcastSent": "✅ Broadcast wurde an **{count}** ticket(s) gesendet.",
+    "internalError": "❌ Ein interner Fehler ist aufgetreten.",
+    "channelNotFound": "❌ Kanal nicht gefunden.",
+    "unknownTicketType": "❌ Unbekannter Ticket-Typ.",
+    "noAccessToType": "❌ Du hast keinen Zugriff auf diesen Ticket-Typ.",
+    "ticketCreateFailed": "❌ Ticket konnte nicht erstellt werden. Bitte versuche es erneut.",
+    "renameEmpty": "❌ Der Name enthält keine gültigen Zeichen (nur Buchstaben, Zahlen und Bindestriche sind erlaubt).",
+    "notClaimed": "❌ Dieses Ticket ist nicht beansprucht.",
+    "alreadyThisType": "❌ Das Ticket ist bereits in diesem Typ.",
+    "noOtherTypes": "❌ Es gibt keine anderen Ticket-Typen zum Verschieben.",
+    "blacklistEmpty": "✅ Die Blacklist ist leer.",
+    "notesEmpty": "📝 Keine Notizen für dieses Ticket.",
+    "notInvalidRating": "❌ Ungültige Bewertung.",
+    "ratingRefNotFound": "❌ Ticket-Referenz nicht gefunden.",
+    "alreadyRated": "✅ Du hast dieses Ticket bereits bewertet.",
+    "onlyCreatorNotify": "❌ Nur der Ticket-Ersteller kann Benachrichtigungen umschalten.",
+    "deletingChannel": "🗑️ Kanal wird gelöscht...",
+    "deleteCancelled": "✅ Löschen abgebrochen.",
+    "deleteConfirmPrompt": "⚠️ **Bist du sicher?** Der Ticket-Kanal wird unwiderruflich gelöscht.",
+    "closingTicket": "⏳ **Das Ticket wird geschlossen.** Bitte warte einen Moment, das Transcript wird erstellt...",
+    "selectCategory": "🎫 Bitte wähle eine Kategorie:",
+    "alreadyLocked": "❌ Dieses Ticket ist bereits gesperrt.",
+    "notLocked": "❌ Dieses Ticket ist nicht gesperrt.",
+    "selectMoveTarget": "🔀 Wohin soll dieses Ticket verschoben werden?",
+    "movingTo": "⏳ Verschiebe zu **{type}**...",
+    "movedTo": "✅ Ticket wurde zu **{type}** verschoben.",
+    "transcriptFailed": "❌ Fehler beim Erstellen des Transcripts.",
+    "priorityAlreadySet": "ℹ️ Die Priorität ist bereits auf **{priority}** gesetzt.",
+    "selectMoveTargetCurrent": "🔀 **Ticket verschieben** (aktuell: **{type}**)\nWohin soll dieses Ticket verschoben werden?",
+    "autoCloseReason": "Automatisch geschlossen wegen Inaktivität",
+    "staffReminderTitle": "⏰ **Keine Staff-Antwort seit {hours} Stunden!**",
+    "staffReminderBody": "Ticket <#{channel}> (Typ: **{type}**, Priorität: **{priority}**) wartet auf eine Rückmeldung.",
+    "staffReplyTitle": "🔔 Staff hat auf dein Ticket geantwortet!",
+    "staffReplyBody": "Ein Teammitglied hat in deinem **{type}**-Ticket geantwortet.\n\n[🔗 Zum Ticket springen]({link})",
+    "broadcastNoTickets": "ℹ️ Keine offenen Tickets gefunden.",
+    "broadcastResult": "✅ Broadcast an **{sent}** Ticket(s) gesendet.",
+    "broadcastResultFailed": "✅ Broadcast an **{sent}** Ticket(s) gesendet. *({failed} Kanal/Kanäle fehlgeschlagen)*",
+    "panelChannelNotFound": "❌ Kanal `{channel}` nicht gefunden. Bitte `openTicketChannelId` in der Config prüfen.",
+    "panelSent": "✅ Ticket-Panel wurde in <#{channel}> gesendet.",
+    "panelSendFailed": "❌ Fehler beim Senden des Panels. Sind die Bot-Berechtigungen korrekt?",
+    "noReasonGiven": "Kein Grund angegeben",
+    "userAddFailed": "❌ Fehler beim Hinzufügen des Nutzers.",
+    "userRemoveFailed": "❌ Fehler beim Entfernen des Nutzers.",
+    "cannotRemoveCreator": "❌ Der Ersteller des Tickets kann nicht entfernt werden."
   },
   "priorities": {
     "low": "🟢 Niedrig",

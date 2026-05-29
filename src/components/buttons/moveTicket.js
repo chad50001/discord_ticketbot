@@ -23,7 +23,7 @@ module.exports = {
     const types = client.config.ticketTypes.filter(t => t.codeName !== ticket.type);
     if (types.length === 0) {
       return interaction.reply({
-        content: '❌ Es gibt keine anderen Ticket-Typen zum Verschieben.',
+        content: client.t('messages.noOtherTypes'),
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -38,11 +38,11 @@ module.exports = {
 
     const menu = new StringSelectMenuBuilder()
       .setCustomId('tb_moveSelect')
-      .setPlaceholder('Neuen Ticket-Typ auswählen...')
+      .setPlaceholder(client.t('menus.moveTarget'))
       .addOptions(options);
 
     await interaction.reply({
-      content: `🔀 **Ticket verschieben** (aktuell: **${ticket.type}**)\nWohin soll dieses Ticket verschoben werden?`,
+      content: client.t('messages.selectMoveTargetCurrent', { type: ticket.type }),
       components: [new ActionRowBuilder().addComponents(menu)],
       flags: MessageFlags.Ephemeral,
     });

@@ -56,14 +56,14 @@ module.exports = {
     if (sub === 'list') {
       const list = getBlacklist(interaction.guildId);
       if (list.length === 0) {
-        return interaction.reply({ content: '✅ Die Blacklist ist leer.', flags: MessageFlags.Ephemeral });
+        return interaction.reply({ content: client.t('messages.blacklistEmpty'), flags: MessageFlags.Ephemeral });
       }
 
       const embed = new EmbedBuilder()
-        .setTitle('🚫 Ticket-Blacklist')
+        .setTitle(client.t('embeds.blacklistList.title'))
         .setColor(0xed4245)
         .setTimestamp()
-        .setFooter({ text: `${list.length} Einträge` })
+        .setFooter({ text: client.t('embeds.blacklistList.footer', { count: String(list.length) }) })
         .setDescription(
           list.slice(0, 20).map(entry => {
             const ts = `<t:${Math.floor(entry.added_at / 1000)}:R>`;

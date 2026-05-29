@@ -27,7 +27,7 @@ module.exports = {
     // Only the ticket creator may toggle this
     if (interaction.user.id !== ticket.creator_id) {
       return interaction.reply({
-        content: '❌ Only the ticket creator can toggle notifications.',
+        content: client.t('messages.onlyCreatorNotify'),
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -36,7 +36,7 @@ module.exports = {
     setNotifyOnReply(interaction.channelId, newValue);
 
     const newRow = new ActionRowBuilder().addComponents(
-      buildNotifyButton(newValue === 1)
+      buildNotifyButton(newValue === 1, client)
     );
 
     await interaction.update({ components: [newRow] }).catch(() => null);
@@ -46,12 +46,13 @@ module.exports = {
 /**
  * Builds the notification toggle button.
  * @param {boolean} enabled  Current notification state
+ * @param {import('../../client').TicketClient} client
  * @returns {ButtonBuilder}
  */
-function buildNotifyButton(enabled) {
+function buildNotifyButton(enabled, client) {
   return new ButtonBuilder()
     .setCustomId('tb_notifyToggle')
-    .setLabel(enabled ? 'Notifications On' : 'Notify me when staff replies')
+    .setLabel(enabled ? client.t('buttons.notifyOn') : client.t('buttons.notifyOff'))
     .setEmoji(enabled ? '🔔' : '🔕')
     .setStyle(enabled ? ButtonStyle.Success : ButtonStyle.Secondary);
 }

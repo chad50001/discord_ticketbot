@@ -45,7 +45,7 @@ module.exports = {
     } catch (err) {
       client.logger.error('[Interactions] Unhandled error:', err);
 
-      const reply = { content: '❌ Ein interner Fehler ist aufgetreten.', flags: MessageFlags.Ephemeral };
+      const reply = { content: client.t('messages.internalError'), flags: MessageFlags.Ephemeral };
       if (interaction.replied || interaction.deferred) {
         await interaction.followUp(reply).catch(() => null);
       } else {

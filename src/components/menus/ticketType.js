@@ -22,7 +22,7 @@ module.exports = {
     const ticketType = client.config.ticketTypes.find(t => t.codeName === typeCode);
 
     if (!ticketType) {
-      return interaction.reply({ content: '❌ Unbekannter Ticket-Typ.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.unknownTicketType'), flags: MessageFlags.Ephemeral });
     }
 
     const user = interaction.user;
@@ -46,7 +46,7 @@ module.exports = {
       const blocked = ticketType.cantAccess.some(roleId => interaction.member.roles.cache.has(roleId));
       if (blocked) {
         return interaction.reply({
-          content: '❌ Du hast keinen Zugriff auf diesen Ticket-Typ.',
+          content: client.t('messages.noAccessToType'),
           flags: MessageFlags.Ephemeral,
         });
       }
@@ -71,7 +71,7 @@ module.exports = {
     const channel = await openTicket(client, interaction.guild, user, ticketType, []);
     if (!channel) {
       return interaction.editReply({
-        content: '❌ Ticket konnte nicht erstellt werden. Bitte versuche es erneut.',
+        content: client.t('messages.ticketCreateFailed'),
         components: [],
       });
     }

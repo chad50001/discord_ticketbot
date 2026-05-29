@@ -14,11 +14,11 @@ module.exports = {
     const ticketId = parseInt(ticketIdStr, 10);
 
     if (isNaN(rating) || rating < 1 || rating > 5 || isNaN(ticketId)) {
-      return interaction.reply({ content: '❌ Ungültige Bewertung.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.notInvalidRating'), flags: MessageFlags.Ephemeral });
     }
 
     if (getRating(ticketId)) {
-      return interaction.reply({ content: '✅ Du hast dieses Ticket bereits bewertet.', flags: MessageFlags.Ephemeral });
+      return interaction.reply({ content: client.t('messages.alreadyRated'), flags: MessageFlags.Ephemeral });
     }
 
     const rawComment = interaction.fields.getTextInputValue('rate_comment')?.trim();
@@ -31,8 +31,8 @@ module.exports = {
     await interaction.update({
       embeds: [
         new EmbedBuilder()
-          .setTitle('✅ Bewertung erhalten')
-          .setDescription(`Danke für dein Feedback! Du hast **${label}** gegeben.`)
+          .setTitle(client.t('embeds.ratingReceived.title'))
+          .setDescription(client.t('embeds.ratingReceived.description', { label }))
           .setColor(0x57f287)
           .setTimestamp(),
       ],
@@ -44,10 +44,10 @@ module.exports = {
       const ratingsChannel = await client.channels.fetch(ratingsChannelId).catch(() => null);
       if (ratingsChannel) {
         const embed = new EmbedBuilder()
-          .setTitle(`⭐ Neue Bewertung — Ticket #${ticketId}`)
+          .setTitle(client.t('embeds.ratingPost.title', { count: String(ticketId) }))
           .addFields(
-            { name: 'Nutzer',    value: `<@${interaction.user.id}>`, inline: true },
-            { name: 'Bewertung', value: label,                       inline: true },
+            { name: client.t('embeds.ratingPost.userField'),   value: `<@${interaction.user.id}>`, inline: true },
+            { name: client.t('embeds.ratingPost.ratingField'), value: label,                       inline: true },
           )
           .setColor(0xfee75c)
           .setTimestamp();

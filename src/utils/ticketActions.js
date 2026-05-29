@@ -229,11 +229,11 @@ async function openTicket(client, guild, user, ticketType, answers = []) {
   // ── User notification opt-in button ──────────────────────────────────────────
   if (cfg.userNotifications?.enabled) {
     const { buildNotifyButton } = require('../components/buttons/notifyToggle');
-    const notifyRow = new ActionRowBuilder().addComponents(buildNotifyButton(false));
+    const notifyRow = new ActionRowBuilder().addComponents(buildNotifyButton(false, client));
     await channel.send({
       content: `<@${user.id}>`,
       embeds: [{
-        description: '🔕 Click the button below if you want to receive a **DM notification** when a staff member replies to your ticket.',
+        description: client.t('embeds.notifyOptIn.description'),
         color: 0x5865f2,
       }],
       components: [notifyRow],
@@ -378,7 +378,7 @@ async function performClose(client, channel, ticket, closer, reason) {
   // 8. Rating request
   const ratingCfg = client.config.ratingSystem;
   if (ratingCfg?.enabled) {
-    const ratingRow   = buildRatingRow();
+    const ratingRow   = buildRatingRow(ticket.id);
     const ratingEmbed = ratingRequestEmbed(client, { count: ticket.id });
 
     if (ratingCfg.dmUser) {
@@ -453,7 +453,11 @@ async function performMove(client, channel, ticket, newType, movedBy) {
 
   await channel.send({
     embeds: [{
-      description: `🔀 Ticket wurde von <@${movedBy.id}> von **${oldType?.name ?? ticket.type}** zu **${newType.name}** verschoben.`,
+      description: client.t('embeds.moved.description', {
+        user: `<@${movedBy.id}>`,
+        from: oldType?.name ?? ticket.type,
+        to:   newType.name,
+      }),
       color: 0x5865f2,
     }],
   }).catch(() => null);
@@ -517,11 +521,13 @@ async function collectAttachments(channel, client) {
   }
 }
 
-function buildRatingRow() {
+function buildRatingRow(ticketId) {
   return new ActionRowBuilder().addComponents(
     [1, 2, 3, 4, 5].map(n =>
       new ButtonBuilder()
-        .setCustomId(`tb_rate:${n}`)
+        // Encode the ticket id directly so the handler never has to parse it out
+        // of a (translatable) embed description.
+        .setCustomId(`tb_rate:${n}:${ticketId}`)
         .setLabel(String(n))
         .setEmoji('⭐')
         .setStyle(ButtonStyle.Secondary)
