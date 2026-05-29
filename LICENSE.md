@@ -1,3 +1,17 @@
+# License
+
+This project is licensed under the **GNU Affero General Public License v3.0**
+(the complete text of which follows below), with one **additional term** added
+under Section 7 of the AGPL-3.0:
+
+> Forks and modifications that remove or bypass the MSK Transcript Service
+> integration (the bot's communication with `www.msk-scripts.de`) are not permitted.
+
+Aside from this additional term, all rights and obligations of the AGPL-3.0
+apply in full.
+
+---
+
 # GNU AFFERO GENERAL PUBLIC LICENSE
 
 Version 3, 19 November 2007
