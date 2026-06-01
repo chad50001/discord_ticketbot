@@ -64,7 +64,7 @@ Anstatt Transkripte als Dateianhang per DM zu versenden, kann der Bot sie auf **
 | Dateianhänge im Transkript | ❌ | ✅ | ✅ |
 | Max. Anhangsgröße pro Ticket | — | 150 MB | 500 MB |
 | Eigene Domain | ❌ | ✅ | ✅ |
-| Speicherdauer | 30 Tage | 60 Tage | 120 Tage |
+| Speicherdauer | 30 Tage | 180 Tage | 365 Tage |
 | Uploads pro Stunde | 30 | 60 | 300 |
 | **Gehostetes Bot-Management** | ❌ | ✅ | ✅ |
 
