@@ -105,7 +105,7 @@ Premium and Premium+ customers can have their bot instance **fully hosted by MSK
 
 | Feature | Description |
 |---|---|
-| **Bot Configuration Editor** | Edit `config.jsonc`, `snippets.jsonc` and `.env` directly in the browser with syntax highlighting. Changes take effect after a restart. |
+| **Bot Configuration Editor** | Edit `config.jsonc`, `snippets.jsonc`, `.env` and the active language file (`locales/<lang>.json`) directly in the browser with syntax highlighting. Changes take effect after a restart. |
 | **Bot Control** | Start, stop and restart the bot with a single click. |
 | **One-click Update** | Downloads the latest version via `git pull`, installs new dependencies and prompts you to restart. |
 | **Live Log Console** | Real-time stream of the bot's output directly in the browser — no terminal needed. |

@@ -103,7 +103,7 @@ Premium- und Premium+-Kunden können ihre Bot-Instanz **vollständig von MSK Scr
 
 | Feature | Beschreibung |
 |---|---|
-| **Bot-Konfigurations-Editor** | `config.jsonc`, `snippets.jsonc` und `.env` direkt im Browser bearbeiten. Änderungen werden nach einem Neustart aktiv. |
+| **Bot-Konfigurations-Editor** | `config.jsonc`, `snippets.jsonc`, `.env` und die aktive Sprachdatei (`locales/<lang>.json`) direkt im Browser bearbeiten. Änderungen werden nach einem Neustart aktiv. |
 | **Bot-Steuerung** | Bot per Klick starten, stoppen und neu starten. |
 | **Update per Klick** | Lädt die neueste Version via `git pull`, installiert neue Abhängigkeiten und fordert anschließend zum Neustart auf. |
 | **Live-Log-Konsole** | Echtzeit-Stream der Bot-Ausgabe direkt im Browser — kein Terminal nötig. |
