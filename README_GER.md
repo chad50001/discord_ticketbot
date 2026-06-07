@@ -26,7 +26,7 @@ Ein moderner, selbst-gehosteter Discord-Ticket-Bot auf Basis von **Discord.js v1
 | 🎫 Ticket-Typen | Bis zu 25 konfigurierbare Typen mit eigenem Emoji, Farbe, Kategorie & Fragen |
 | 📋 Fragebögen | Modale Formulare (bis zu 5 Fragen) bei Ticket-Erstellung |
 | 🙋 Claim-System | Claim/Unclaim per Button — Embed & Topic werden automatisch aktualisiert |
-| 🔴 Prioritäten | Low / Medium / High / Urgent per `/priority` — im Channel-Topic und Embed sichtbar |
+| 🔴 Prioritäten | Low / Medium / High / Urgent — pro Ticket-Typ vordefinierbar oder per `/priority`, im Channel-Topic und Embed sichtbar |
 | 📝 Staff-Notizen | Private Notizen per `/note add` / `/note list` |
 | 🔀 Ticket verschieben | Per `/move` oder Button in anderen Typ/Kategorie verschieben (Staff only) |
 | 🛡️ Typ-spezifische Staff-Rollen | Jeder Ticket-Typ kann eigene Staff-Rollen haben |
@@ -35,6 +35,7 @@ Ein moderner, selbst-gehosteter Discord-Ticket-Bot auf Basis von **Discord.js v1
 | ⭐ Bewertungssystem | 1–5 Sterne Feedback nach Schließung, automatisch in konfigurierten Channel gepostet |
 | ⏰ Staff-Erinnerung | Automatischer Ping im Ticket wenn kein Staff nach X Stunden antwortet |
 | ⏰ Auto-Close | Inaktive Tickets automatisch schließen mit konfigurierbarem Warn-Vorlauf |
+| ♻️ Ticket wieder öffnen | Geschlossenes Ticket per `♻️`-Button oder `/reopen` wieder öffnen — konfigurierbar, stellt Zugriff & Kategorie wieder her |
 | 🔗 Transcript-Links | Transkripte werden online gespeichert und sind per Link abrufbar |
 | 📄 HTML-Transcript | Vollständiges, self-contained HTML-Transcript — Avatare als Base64 eingebettet |
 | 🌐 Eigene Domain | Premium-Nutzer können Transkripte unter ihrer eigenen Domain abrufen |
@@ -157,6 +158,7 @@ discord_ticketbot/
     ├── commands/
     │   ├── setup.js            # /setup
     │   ├── close.js            # /close
+    │   ├── reopen.js           # /reopen
     │   ├── add.js              # /add
     │   ├── remove.js           # /remove
     │   ├── claim.js            # /claim
@@ -185,6 +187,7 @@ discord_ticketbot/
     │   │   ├── deleteTicket.js
     │   │   ├── deleteConfirm.js
     │   │   ├── deleteCancel.js
+    │   │   ├── reopenTicket.js     # tb_reopen
     │   │   ├── rateTicket.js       # tb_rate:N
     │   │   └── notifyToggle.js     # tb_notifyToggle
     │   ├── modals/
@@ -321,6 +324,7 @@ sudo journalctl -u ticketbot.service -f
 |---|---|---|
 | `/setup` | Administrator | Ticket-Panel senden |
 | `/close [grund]` | Konfigurierbar | Aktuelles Ticket schließen |
+| `/reopen` | Konfigurierbar | Geschlossenes Ticket wieder öffnen |
 | `/claim` | Staff | Ticket beanspruchen |
 | `/unclaim` | Staff | Ticket freigeben |
 | `/move` | Staff | Ticket in anderen Typ/Kategorie verschieben |
@@ -350,6 +354,7 @@ sudo journalctl -u ticketbot.service -f
 | 🙌 Freigeben | `claimButton: true`, geclaimt | Ticket freigeben |
 | 🔀 Verschieben | Mehr als 1 Typ konfiguriert | Typ-Auswahl für Staff öffnen |
 | 🗑️ Ticket löschen | Nach Schließung | Kanal nach Bestätigung löschen |
+| ♻️ Wieder öffnen | Nach Schließung (`reopenOption.enabled`) | Ticket wieder öffnen — stellt Zugriff & Kategorie wieder her |
 | 🔕 Benachrichtigen | `userNotifications.enabled: true` | Nutzer aktiviert DM-Benachrichtigung bei Staff-Antwort |
 
 ---
@@ -459,6 +464,34 @@ Snippets unterstützen Autocomplete — einfach Name oder Beschreibung eintippen
 "autoClose": { "enabled": true, "inactiveHours": 48, "warnBeforeHours": 6, "excludeClaimed": true }
 ```
 
+### Wieder öffnen (Reopen)
+
+Geschlossene Tickets lassen sich über einen `♻️ Wieder öffnen`-Button in der Closed-Nachricht sowie den `/reopen`-Befehl erneut öffnen.
+
+```jsonc
+"reopenOption": {
+  "enabled": true,            // Hauptschalter für das Reopen-Feature (Button + /reopen)
+  "button": true,             // ♻️-Button in der Closed-Nachricht anzeigen
+  "whoCanReopen": "STAFFONLY" // "EVERYONE" oder "STAFFONLY"
+}
+```
+
+Beim Wiederöffnen werden die Zugriffsrechte des Erstellers wiederhergestellt, der Kanal zurück in die Kategorie des Ticket-Typs verschoben und das `closed-`-Präfix entfernt.
+
+### Vordefinierte Priorität pro Ticket-Typ
+
+Jeder Ticket-Typ kann ein `priority`-Feld definieren, mit dem neue Tickets dieses Typs starten (statt des Standards `medium`). Sie erscheint im Channel-Topic und Opening-Embed und kann später weiterhin per `/priority` geändert werden.
+
+```jsonc
+"ticketTypes": [
+  {
+    "codeName": "support",
+    "priority": "high",   // "low", "medium", "high" oder "urgent" — Fallback "medium" wenn weggelassen
+    // ...
+  }
+]
+```
+
 ### Kanalzustand-Übersicht
 
 | Zustand | Kanalname | Channel-Topic | Opening-Embed |
@@ -468,6 +501,7 @@ Snippets unterstützen Autocomplete — einfach Name oder Beschreibung eintippen
 | `/claim` | `ticket-maxmuster` | `🟡 Mittel \| 🙋 Claimed by @Staff` | + Claimed-by-Feld |
 | `/lock lock` | `ticket-maxmuster` | unverändert | Sperr-Hinweis gepostet |
 | Ticket geschlossen | `closed-ticket-maxmuster` | unverändert | alle Buttons entfernt |
+| Ticket wieder geöffnet | `ticket-maxmuster` | wiederhergestellt | Reopen-Embed + Ticket-Buttons wiederhergestellt |
 
 ---
 
