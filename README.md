@@ -26,7 +26,7 @@ A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLit
 | 🎫 Ticket Types | Up to 25 configurable types with individual emoji, color, category & questions |
 | 📋 Questionnaires | Modal forms (up to 5 questions) shown when opening a ticket |
 | 🙋 Claim System | Staff can claim/unclaim — button toggles, embed & topic update automatically |
-| 🔴 Priorities | Low / Medium / High / Urgent via `/priority` — shown in channel topic & embed |
+| 🔴 Priorities | Low / Medium / High / Urgent — predefined per ticket type or set via `/priority`, shown in channel topic & embed |
 | 📝 Staff Notes | Private notes via `/note add` / `/note list` |
 | 🔀 Move Ticket | Move to a different type/category via `/move` or button (staff only) |
 | 🛡️ Type-specific Staff Roles | Each ticket type can define its own staff roles |
@@ -35,6 +35,7 @@ A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLit
 | ⭐ Rating System | 1–5 star feedback after closing, automatically posted to a configured channel |
 | ⏰ Staff Reminder | Automatic ping inside the ticket if no staff responds within X hours |
 | ⏰ Auto-Close | Automatically close inactive tickets with a configurable warning period |
+| ♻️ Reopen Tickets | Reopen a closed ticket via the `♻️` button or `/reopen` — configurable, restores access & moves it back |
 | 🔗 Transcript Links | Transcripts stored online and accessible via a public link |
 | 📄 HTML Transcript | Full self-contained HTML transcript — avatars embedded as Base64, no CDN required |
 | 🌐 Custom Domain | Premium users can serve transcripts under their own domain |
@@ -159,6 +160,7 @@ discord_ticketbot/
     ├── commands/
     │   ├── setup.js            # /setup
     │   ├── close.js            # /close
+    │   ├── reopen.js           # /reopen
     │   ├── add.js              # /add
     │   ├── remove.js           # /remove
     │   ├── claim.js            # /claim
@@ -187,6 +189,7 @@ discord_ticketbot/
     │   │   ├── deleteTicket.js
     │   │   ├── deleteConfirm.js
     │   │   ├── deleteCancel.js
+    │   │   ├── reopenTicket.js     # tb_reopen
     │   │   ├── rateTicket.js       # tb_rate:N
     │   │   └── notifyToggle.js     # tb_notifyToggle
     │   ├── modals/
@@ -325,6 +328,7 @@ sudo journalctl -u ticketbot.service -f
 |---|---|---|
 | `/setup` | Administrator | Send the ticket panel |
 | `/close [reason]` | Configurable | Close the current ticket |
+| `/reopen` | Configurable | Reopen a closed ticket |
 | `/claim` | Staff | Claim a ticket |
 | `/unclaim` | Staff | Release a claimed ticket |
 | `/move` | Staff | Move ticket to a different type/category |
@@ -354,6 +358,7 @@ sudo journalctl -u ticketbot.service -f
 | 🙌 Unclaim | `claimButton: true`, claimed | Release the ticket |
 | 🔀 Move | More than 1 type configured | Open type selection |
 | 🗑️ Delete Ticket | After closing | Delete channel after confirmation |
+| ♻️ Reopen | After closing (`reopenOption.enabled`) | Reopen the ticket — restores access & moves it back to its category |
 | 🔕 Notify me | `userNotifications.enabled: true` | User opts in to DM notifications on staff reply |
 
 ---
@@ -462,6 +467,34 @@ Snippets support autocomplete — start typing the name or description to filter
 "autoClose": { "enabled": true, "inactiveHours": 48, "warnBeforeHours": 6, "excludeClaimed": true }
 ```
 
+### Reopen
+
+Closed tickets can be reopened via a `♻️ Reopen` button on the closed-ticket message and the `/reopen` command.
+
+```jsonc
+"reopenOption": {
+  "enabled": true,           // Master switch for the reopen feature (button + /reopen)
+  "button": true,            // Show the ♻️ Reopen button on the closed-ticket message
+  "whoCanReopen": "STAFFONLY" // "EVERYONE" or "STAFFONLY"
+}
+```
+
+Reopening restores the creator's channel access, moves the channel back to its ticket type's category and drops the `closed-` name prefix.
+
+### Predefined Priority per Ticket Type
+
+Each ticket type may define a `priority` that new tickets of that type start with (instead of the default `medium`). It is reflected in the channel topic and opening embed, and can still be changed later via `/priority`.
+
+```jsonc
+"ticketTypes": [
+  {
+    "codeName": "support",
+    "priority": "high",   // "low", "medium", "high" or "urgent" — defaults to "medium" if omitted
+    // ...
+  }
+]
+```
+
 ### Channel State Overview
 
 | State | Channel Name | Channel Topic | Opening Embed |
@@ -471,6 +504,7 @@ Snippets support autocomplete — start typing the name or description to filter
 | `/claim` | `ticket-username` | `🟡 Medium \| 🙋 Claimed by @Staff` | + Claimed by field |
 | `/lock lock` | `ticket-username` | unchanged | lock notice posted |
 | Ticket closed | `closed-ticket-username` | unchanged | all buttons removed |
+| Ticket reopened | `ticket-username` | restored | reopen embed + ticket buttons restored |
 
 ---
 
