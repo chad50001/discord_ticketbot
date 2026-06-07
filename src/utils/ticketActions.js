@@ -18,12 +18,14 @@ const {
   ticketOpenedEmbed,
   ticketClosedEmbed,
   ticketClosedDMEmbed,
+  ticketReopenedEmbed,
   ticketLogEmbed,
   ratingRequestEmbed,
 } = require('./embeds');
 
 const PRIORITY_EMOJI = { low: '🟢', medium: '🟡', high: '🟠', urgent: '🔴' };
 const PRIORITY_LABEL = { low: 'Niedrig', medium: 'Mittel', high: 'Hoch', urgent: 'Dringend' };
+const VALID_PRIORITIES = new Set(['low', 'medium', 'high', 'urgent']);
 
 // ─── Channel Topic ────────────────────────────────────────────────────────────
 
@@ -208,12 +210,15 @@ async function openTicket(client, guild, user, ticketType, answers = []) {
     return null;
   }
 
-  db.createTicket({ channelId: channel.id, guildId: guild.id, creatorId: user.id, type: ticketType.codeName });
+  // Predefined priority per ticket type (falls back to 'medium' on missing/invalid value)
+  const priority = VALID_PRIORITIES.has(ticketType.priority) ? ticketType.priority : 'medium';
+
+  db.createTicket({ channelId: channel.id, guildId: guild.id, creatorId: user.id, type: ticketType.codeName, priority });
   const ticket = db.getTicketByChannel(channel.id);
 
   updateChannelTopic(channel, ticket, {}, client); // fire-and-forget
 
-  const embed   = ticketOpenedEmbed(client, { user, ticketType, priority: 'medium', count: ticket.id, answers });
+  const embed   = ticketOpenedEmbed(client, { user, ticketType, priority, count: ticket.id, answers });
   const buttons = buildTicketButtons(client, false);
 
   let pingContent = '';
@@ -309,14 +314,29 @@ async function performClose(client, channel, ticket, closer, reason) {
   db.closeTicket(channel.id, closer.id, reason, transcriptHtml);
   const updatedTicket = db.getTicketByChannel(channel.id);
 
-  // 4. Post closed embed + delete button
-  const deleteRow = new ActionRowBuilder().addComponents(
+  // 4. Post closed embed + delete button (+ optional reopen button)
+  const closedButtons = [];
+
+  const reopenCfg = client.config.reopenOption ?? {};
+  if (reopenCfg.enabled && reopenCfg.button !== false) {
+    closedButtons.push(
+      new ButtonBuilder()
+        .setCustomId('tb_reopen')
+        .setLabel(client.t('buttons.reopen'))
+        .setEmoji(client.t('buttons.reopenEmoji'))
+        .setStyle(ButtonStyle.Success)
+    );
+  }
+
+  closedButtons.push(
     new ButtonBuilder()
       .setCustomId('tb_delete')
       .setLabel(client.t('buttons.delete'))
       .setEmoji(client.t('buttons.deleteEmoji'))
       .setStyle(ButtonStyle.Danger)
   );
+
+  const deleteRow = new ActionRowBuilder().addComponents(closedButtons);
 
   await channel.send({
     embeds:     [ticketClosedEmbed(client, { closer, reason })],
@@ -414,6 +434,57 @@ async function performClose(client, channel, ticket, closer, reason) {
   channel.setName(closedName).catch(err =>
     client.logger.warn(`[performClose] setName failed: ${err.message}`)
   );
+}
+
+// ─── Reopen ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Reopen a previously closed ticket.
+ * Restores the creator's channel access, moves the channel back to its type's
+ * category, renames it (drops the "closed-" prefix) and posts a fresh button row.
+ *
+ * @param {object} client
+ * @param {import('discord.js').TextChannel} channel
+ * @param {object} ticket    The ticket row (status === 'closed')
+ * @param {import('discord.js').User} reopener
+ */
+async function performReopen(client, channel, ticket, reopener) {
+  const cfg = client.config;
+
+  // 1. Restore the creator's view + send access
+  await channel.permissionOverwrites.edit(ticket.creator_id, {
+    ViewChannel: true, SendMessages: true,
+  }).catch(() => null);
+
+  // 2. Update DB (clears closed_by/closed_at/close_reason, status → open)
+  db.reopenTicket(channel.id);
+  const updated = db.getTicketByChannel(channel.id);
+
+  // 3. Move back to the ticket type's category (if configured)
+  const ticketType = cfg.ticketTypes.find(t => t.codeName === updated.type);
+  if (ticketType?.categoryId) {
+    await channel.setParent(ticketType.categoryId, { lockPermissions: false }).catch(err =>
+      client.logger.warn(`[performReopen] setParent failed: ${err.message}`)
+    );
+  }
+
+  // 4. Post reopened embed + fresh ticket button row
+  const buttons = buildTicketButtons(client, !!updated.claimed_by);
+  await channel.send({
+    embeds:     [ticketReopenedEmbed(client, { reopener })],
+    components: [buttons],
+  }).catch(() => null);
+
+  // 5. Restore channel topic (priority/claim)
+  updateChannelTopic(channel, updated, {}, client); // fire-and-forget
+
+  // 6. Rename — strip the "closed-" prefix added on close — fire-and-forget (rate-limited)
+  const restoredName = (channel.name.replace(/^closed-/, '') || 'ticket').substring(0, 100);
+  channel.setName(restoredName).catch(err =>
+    client.logger.warn(`[performReopen] setName failed: ${err.message}`)
+  );
+
+  client.logger.info(`[Reopen] Ticket #${updated.id} reopened by ${reopener.tag}`);
 }
 
 // ─── Move ─────────────────────────────────────────────────────────────────────
@@ -548,6 +619,7 @@ function getEffectiveStaffRoles(ticketType, cfg) {
 module.exports = {
   openTicket,
   performClose,
+  performReopen,
   performMove,
   buildTicketButtons,
   refreshTicketMessage,

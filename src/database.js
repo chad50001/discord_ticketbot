@@ -87,12 +87,12 @@ function initDatabase() {
 
 // ─── Ticket Operations ────────────────────────────────────────────────────────
 
-function createTicket({ channelId, guildId, creatorId, type }) {
+function createTicket({ channelId, guildId, creatorId, type, priority = 'medium' }) {
   const now = Date.now();
   return db.prepare(`
-    INSERT INTO tickets (channel_id, guild_id, creator_id, type, last_activity, created_at)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(channelId, guildId, creatorId, type, now, now);
+    INSERT INTO tickets (channel_id, guild_id, creator_id, type, priority, last_activity, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(channelId, guildId, creatorId, type, priority, now, now);
 }
 
 /**
@@ -126,6 +126,14 @@ function closeTicket(channelId, closedBy, reason, transcript) {
     SET status = 'closed', closed_by = ?, closed_at = ?, close_reason = ?, transcript = ?
     WHERE channel_id = ?
   `).run(closedBy, now, reason, transcript, channelId);
+}
+
+function reopenTicket(channelId) {
+  return db.prepare(`
+    UPDATE tickets
+    SET status = 'open', closed_by = NULL, closed_at = NULL, close_reason = NULL, last_activity = ?
+    WHERE channel_id = ?
+  `).run(Date.now(), channelId);
 }
 
 function claimTicket(channelId, staffId) {
@@ -310,7 +318,7 @@ function getRating(ticketId) {
 module.exports = {
   initDatabase,
   createTicket, getTotalTicketCount, getTicketByChannel, getTicketById,
-  getOpenTicketsByUser, getAllOpenTickets, closeTicket, claimTicket, unclaimTicket,
+  getOpenTicketsByUser, getAllOpenTickets, closeTicket, reopenTicket, claimTicket, unclaimTicket,
   setPriority, setType, updateLastActivity, setStaffReminded,
   lockTicket, unlockTicket, setNotifyOnReply, setLastNotifySent,
   getInactiveTickets, getTicketsNeedingStaffReminder,

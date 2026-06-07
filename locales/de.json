@@ -11,6 +11,8 @@
     "moveEmoji": "🔀",
     "delete": "Ticket löschen",
     "deleteEmoji": "🗑️",
+    "reopen": "Wieder öffnen",
+    "reopenEmoji": "♻️",
     "transcript": "Transcript",
     "transcriptEmoji": "📄",
     "deleteConfirm": "Ja, Ticket löschen",
@@ -35,6 +37,10 @@
     "ticketClosedDM": {
       "title": "Dein Ticket wurde geschlossen",
       "description": "Dein Ticket **#{count}** ({type}) wurde von {closer} geschlossen.\n**Grund:** {reason}"
+    },
+    "ticketReopened": {
+      "title": "Ticket wieder geöffnet",
+      "description": "Das Ticket wurde von {reopener} wieder geöffnet."
     },
     "ticketLog": {
       "title": "Ticket #{count} geschlossen",
@@ -188,6 +194,9 @@
     "deleteCancelled": "✅ Löschen abgebrochen.",
     "deleteConfirmPrompt": "⚠️ **Bist du sicher?** Der Ticket-Kanal wird unwiderruflich gelöscht.",
     "closingTicket": "⏳ **Das Ticket wird geschlossen.** Bitte warte einen Moment, das Transcript wird erstellt...",
+    "reopeningTicket": "♻️ **Das Ticket wird wieder geöffnet...**",
+    "ticketNotClosed": "❌ Dieses Ticket ist nicht geschlossen.",
+    "reopenDisabled": "❌ Das Wiederöffnen von Tickets ist auf diesem Server deaktiviert.",
     "selectCategory": "🎫 Bitte wähle eine Kategorie:",
     "alreadyLocked": "❌ Dieses Ticket ist bereits gesperrt.",
     "notLocked": "❌ Dieses Ticket ist nicht gesperrt.",

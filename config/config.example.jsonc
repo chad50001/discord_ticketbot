@@ -31,8 +31,9 @@
       "description": "If you have questions or need help with our scripts",
       "emoji": "💡",                            // The emoji of the type (can be blank)
       "color": "",                              // Hex color or "" to use mainColor
-      "categoryId": "CATEGORY_ID_HERE",         // Category where tickets of this type are created      
-      "ticketNameOption": "",                   // Template: USERNAME, USERID, TICKETCOUNT or "" for default  
+      "categoryId": "CATEGORY_ID_HERE",         // Category where tickets of this type are created
+      "priority": "medium",                     // Predefined priority for new tickets of this type: "low", "medium", "high" or "urgent"
+      "ticketNameOption": "",                   // Template: USERNAME, USERID, TICKETCOUNT or "" for default
       "customDescription": "A team member will get back to you as soon as possible!",
       "cantAccess": [],                         // Role IDs that cannot open this ticket type 
       "staffRoles": [],                         // Type-specific staff roles (overrides global rolesWhoHaveAccessToTheTickets)
@@ -59,6 +60,7 @@
       "emoji": "⌨️",
       "color": "",
       "categoryId": "CATEGORY_ID_HERE",
+      "priority": "high",                       // Predefined priority: "low", "medium", "high" or "urgent"
       "ticketNameOption": "",
       "customDescription": "",
       "cantAccess": [],
@@ -102,6 +104,13 @@
     "askReason": true,
     "whoCanCloseTicket": "EVERYONE",          // "EVERYONE" or "STAFFONLY"
     "closeTicketCategoryId": ""               // Category ID to move closed tickets to, or "" to not move
+  },
+
+  // ─── Reopen Options ──────────────────────────────────────────────────────────
+  "reopenOption": {
+    "enabled": true,                          // Allow closed tickets to be reopened (button + /reopen command)
+    "button": true,                           // Show a "♻️ Reopen" button on the closed-ticket message
+    "whoCanReopen": "STAFFONLY"               // "EVERYONE" or "STAFFONLY" — note: closed channels are usually staff-visible only
   },
 
   // ─── Rating System ───────────────────────────────────────────────────────────

@@ -104,6 +104,16 @@ function ticketClosedEmbed(client, { closer, reason }) {
     .setTimestamp();
 }
 
+function ticketReopenedEmbed(client, { reopener }) {
+  return new EmbedBuilder()
+    .setTitle(client.t('embeds.ticketReopened.title'))
+    .setDescription(client.t('embeds.ticketReopened.description', {
+      reopener: `<@${reopener.id}>`,
+    }))
+    .setColor(Colors.Green)
+    .setTimestamp();
+}
+
 function ticketClosedDMEmbed(client, { count, type, closer, reason, transcriptUrl }) {
   const embed = new EmbedBuilder()
     .setTitle(client.t('embeds.ticketClosedDM.title'))
@@ -224,6 +234,7 @@ module.exports = {
   ticketOpenedEmbed,
   ticketClosedEmbed,
   ticketClosedDMEmbed,
+  ticketReopenedEmbed,
   ticketLogEmbed,
   ratingRequestEmbed,
   statsEmbed,
