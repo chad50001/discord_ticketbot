@@ -42,7 +42,7 @@ function parseMarkdown(text) {
 }
 
 function formatDate(date) {
-  return new Intl.DateTimeFormat('de-DE', {
+  return new Intl.DateTimeFormat('en-GB', {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   }).format(date);
@@ -190,7 +190,7 @@ async function generateTranscript(channel, ticketInfo, guildName) {
   const closedAt = ticketInfo.closed_at ? formatDate(new Date(ticketInfo.closed_at)) : '—';
 
   return `<!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -249,21 +249,21 @@ async function generateTranscript(channel, ticketInfo, guildName) {
       <h1>🎫 Ticket <span>#${ticketInfo.id}</span></h1>
       <div style="color:#b9bbbe;margin-top:4px;">${escapeHtml(channel.name)} — ${escapeHtml(guildName)}</div>
       <div class="meta-grid">
-        <div class="meta-item"><strong>Typ</strong>${escapeHtml(ticketInfo.type)}</div>
-        <div class="meta-item"><strong>Erstellt von</strong>&lt;@${ticketInfo.creator_id}&gt;</div>
-        <div class="meta-item"><strong>Erstellt am</strong>${openedAt}</div>
-        <div class="meta-item"><strong>Geschlossen am</strong>${closedAt}</div>
-        ${ticketInfo.claimed_by ? `<div class="meta-item"><strong>Beansprucht von</strong>&lt;@${ticketInfo.claimed_by}&gt;</div>` : ''}
-        <div class="meta-item"><strong>Priorität</strong>${escapeHtml(ticketInfo.priority)}</div>
-        <div class="meta-item"><strong>Nachrichten</strong>${messages.length}</div>
+        <div class="meta-item"><strong>Type</strong>${escapeHtml(ticketInfo.type)}</div>
+        <div class="meta-item"><strong>Created by</strong>&lt;@${ticketInfo.creator_id}&gt;</div>
+        <div class="meta-item"><strong>Created on</strong>${openedAt}</div>
+        <div class="meta-item"><strong>Closed on</strong>${closedAt}</div>
+        ${ticketInfo.claimed_by ? `<div class="meta-item"><strong>Claimed by</strong>&lt;@${ticketInfo.claimed_by}&gt;</div>` : ''}
+        <div class="meta-item"><strong>Priority</strong>${escapeHtml(ticketInfo.priority)}</div>
+        <div class="meta-item"><strong>Messages</strong>${messages.length}</div>
       </div>
     </div>
   </div>
   <div class="messages">
-    ${messageRows || '<p style="color:#72767d;text-align:center;padding:40px 0;">Keine Nachrichten</p>'}
+    ${messageRows || '<p style="color:#72767d;text-align:center;padding:40px 0;">No messages</p>'}
   </div>
   <div class="footer">
-    Generiert am ${formatDate(new Date())} · Discord Ticket Bot
+    Generated on ${formatDate(new Date())} · Discord Ticket Bot
   </div>
 </body>
 </html>`;
