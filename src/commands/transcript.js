@@ -5,7 +5,7 @@ const { generateTranscript } = require('../utils/transcript');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('transcript')
-    .setDescription('Generiert ein HTML-Transcript des aktuellen Tickets.'),
+    .setDescription('Generate an HTML transcript of the current ticket.'),
 
   async execute(client, interaction) {
     if (!client.isStaff(interaction.member)) {

@@ -4,9 +4,9 @@ const { getTicketByChannel } = require('../database');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('add')
-    .setDescription('Fügt einen Nutzer zum Ticket hinzu.')
+    .setDescription('Add a user to the ticket.')
     .addUserOption(opt =>
-      opt.setName('nutzer').setDescription('Der hinzuzufügende Nutzer').setRequired(true)
+      opt.setName('user').setDescription('The user to add').setRequired(true)
     ),
 
   async execute(client, interaction) {
@@ -18,7 +18,7 @@ module.exports = {
       return interaction.reply({ content: client.t('messages.notATicket'), flags: MessageFlags.Ephemeral });
     }
 
-    const user = interaction.options.getUser('nutzer');
+    const user = interaction.options.getUser('user');
     try {
       await interaction.channel.permissionOverwrites.edit(user.id, {
         ViewChannel: true, SendMessages: true, ReadMessageHistory: true,

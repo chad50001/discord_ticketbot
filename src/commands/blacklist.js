@@ -4,27 +4,27 @@ const { addToBlacklist, removeFromBlacklist, isBlacklisted, getBlacklist } = req
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('blacklist')
-    .setDescription('Verwalte die Ticket-Blacklist.')
+    .setDescription('Manage the ticket blacklist.')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .addSubcommand(sub =>
       sub.setName('add')
-         .setDescription('Nutzer zur Blacklist hinzufügen.')
-         .addUserOption(o => o.setName('nutzer').setDescription('Nutzer').setRequired(true))
-         .addStringOption(o => o.setName('grund').setDescription('Grund').setRequired(false).setMaxLength(200))
+         .setDescription('Add a user to the blacklist.')
+         .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
+         .addStringOption(o => o.setName('reason').setDescription('Reason').setRequired(false).setMaxLength(200))
     )
     .addSubcommand(sub =>
       sub.setName('remove')
-         .setDescription('Nutzer von der Blacklist entfernen.')
-         .addUserOption(o => o.setName('nutzer').setDescription('Nutzer').setRequired(true))
+         .setDescription('Remove a user from the blacklist.')
+         .addUserOption(o => o.setName('user').setDescription('User').setRequired(true))
     )
     .addSubcommand(sub =>
       sub.setName('list')
-         .setDescription('Alle geblacklisteten Nutzer anzeigen.')
+         .setDescription('Show all blacklisted users.')
     ),
 
   async execute(client, interaction) {
     const sub  = interaction.options.getSubcommand();
-    const user = interaction.options.getUser('nutzer');
+    const user = interaction.options.getUser('user');
 
     if (sub === 'add') {
       if (isBlacklisted(user.id, interaction.guildId)) {
@@ -36,7 +36,7 @@ module.exports = {
       addToBlacklist({
         userId:  user.id,
         guildId: interaction.guildId,
-        reason:  interaction.options.getString('grund') ?? null,
+        reason:  interaction.options.getString('reason') ?? null,
         addedBy: interaction.user.id,
       });
       return interaction.reply(client.t('messages.blacklistAdded', { user: `<@${user.id}>` }));

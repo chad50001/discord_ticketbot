@@ -5,9 +5,9 @@ const { performClose } = require('../utils/ticketActions');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('close')
-    .setDescription('Schließt das aktuelle Ticket.')
+    .setDescription('Close the current ticket.')
     .addStringOption(opt =>
-      opt.setName('grund').setDescription('Grund für die Schließung').setRequired(false)
+      opt.setName('reason').setDescription('Reason for closing').setRequired(false)
     ),
 
   async execute(client, interaction) {
@@ -32,7 +32,7 @@ module.exports = {
       return interaction.reply({ content: client.t('messages.channelNotFound'), flags: MessageFlags.Ephemeral });
     }
 
-    const reason = interaction.options.getString('grund') ?? null;
+    const reason = interaction.options.getString('reason') ?? null;
 
     await interaction.reply({
       content: client.t('messages.closingTicket'),

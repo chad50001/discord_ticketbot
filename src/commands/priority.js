@@ -2,16 +2,13 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const { getTicketByChannel, setPriority } = require('../database');
 const { updateChannelTopic, refreshTicketMessage } = require('../utils/ticketActions');
 
-// setTopic is rate-limited: 2 changes per 10 minutes per channel (same as rename)
-const TOPIC_WARNING = '\n> ⚠️ *Das Channel-Topic wird gleich aktualisiert – Discord limitiert Topic-Änderungen auf 2 pro 10 Minuten, das kann einen Moment dauern.*';
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('priority')
-    .setDescription('Setzt die Priorität des aktuellen Tickets.')
+    .setDescription('Set the priority of the current ticket.')
     .addStringOption(opt =>
-      opt.setName('stufe')
-         .setDescription('Prioritätsstufe')
+      opt.setName('level')
+         .setDescription('Priority level')
          .setRequired(true)
          .addChoices(
            { name: '🟢 Niedrig',  value: 'low'    },
@@ -39,7 +36,7 @@ module.exports = {
       return interaction.reply({ content: client.t('messages.notATicket'), flags: MessageFlags.Ephemeral });
     }
 
-    const priority = interaction.options.getString('stufe');
+    const priority = interaction.options.getString('level');
     if (ticket.priority === priority) {
       return interaction.reply({
         content: client.t('messages.priorityAlreadySet', { priority: client.t(`priorities.${priority}`) }),
@@ -53,7 +50,7 @@ module.exports = {
 
     // Reply immediately with rate-limit warning
     await interaction.reply(
-      client.t('messages.priorityChanged', { priority: label }) + TOPIC_WARNING
+      client.t('messages.priorityChanged', { priority: label }) + client.t('messages.topicUpdateWarning')
     );
 
     // Update channel topic (fire-and-forget — rate-limited, may be queued)

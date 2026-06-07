@@ -4,17 +4,17 @@ const { getTicketByChannel, addNote, getNotes } = require('../database');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('note')
-    .setDescription('Verwalte Staff-Notizen für dieses Ticket.')
+    .setDescription('Manage staff notes for this ticket.')
     .addSubcommand(sub =>
       sub.setName('add')
-         .setDescription('Notiz hinzufügen.')
+         .setDescription('Add a note.')
          .addStringOption(opt =>
-           opt.setName('text').setDescription('Inhalt der Notiz').setRequired(true).setMaxLength(1000)
+           opt.setName('text').setDescription('Content of the note').setRequired(true).setMaxLength(1000)
          )
     )
     .addSubcommand(sub =>
       sub.setName('list')
-         .setDescription('Alle Notizen dieses Tickets anzeigen.')
+         .setDescription('Show all notes for this ticket.')
     ),
 
   async execute(client, interaction) {

@@ -2,12 +2,10 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const { getTicketByChannel, claimTicket } = require('../database');
 const { updateChannelTopic, refreshTicketMessage } = require('../utils/ticketActions');
 
-const TOPIC_WARNING = '\n> ⚠️ *Das Channel-Topic wird gleich aktualisiert – Discord limitiert Topic-Änderungen auf 2 pro 10 Minuten, das kann einen Moment dauern.*';
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('claim')
-    .setDescription('Beansprucht dieses Ticket für dich.'),
+    .setDescription('Claim this ticket for yourself.'),
 
   async execute(client, interaction) {
     if (!client.isStaff(interaction.member)) {
@@ -31,7 +29,7 @@ module.exports = {
 
     // Reply immediately with rate-limit warning
     await interaction.reply(
-      client.t('messages.ticketClaimed', { user: `<@${interaction.user.id}>` }) + TOPIC_WARNING
+      client.t('messages.ticketClaimed', { user: `<@${interaction.user.id}>` }) + client.t('messages.topicUpdateWarning')
     );
 
     const channel = interaction.channel

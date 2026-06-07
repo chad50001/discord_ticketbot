@@ -4,9 +4,9 @@ const { getTicketByChannel } = require('../database');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('remove')
-    .setDescription('Entfernt einen Nutzer aus dem Ticket.')
+    .setDescription('Remove a user from the ticket.')
     .addUserOption(opt =>
-      opt.setName('nutzer').setDescription('Der zu entfernende Nutzer').setRequired(true)
+      opt.setName('user').setDescription('The user to remove').setRequired(true)
     ),
 
   async execute(client, interaction) {
@@ -18,7 +18,7 @@ module.exports = {
       return interaction.reply({ content: client.t('messages.notATicket'), flags: MessageFlags.Ephemeral });
     }
 
-    const user = interaction.options.getUser('nutzer');
+    const user = interaction.options.getUser('user');
     if (user.id === ticket.creator_id) {
       return interaction.reply({
         content: client.t('messages.cannotRemoveCreator'),

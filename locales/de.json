@@ -142,6 +142,7 @@
     "ticketAlreadyClaimed": "❌ Dieses Ticket wurde bereits von {user} beansprucht!",
     "ticketClaimed": "🙋 Ticket von {user} beansprucht.",
     "ticketUnclaimed": "🙌 Ticket wurde von {user} freigegeben.",
+    "topicUpdateWarning": "\n> ⚠️ *Das Channel-Topic wird gleich aktualisiert – Discord limitiert Topic-Änderungen auf 2 pro 10 Minuten, das kann einen Moment dauern.*",
     "ticketRenamed": "✏️ Ticket wurde zu **{name}** umbenannt.",
     "ticketMoved": "🔀 Ticket wurde von {user} zu **{type}** verschoben.",
     "ticketLimitReached": "❌ Du kannst maximal **{limit}** Tickets gleichzeitig offen haben.",

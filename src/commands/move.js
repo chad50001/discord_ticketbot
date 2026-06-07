@@ -8,7 +8,7 @@ const { performMove } = require('../utils/ticketActions');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('move')
-    .setDescription('Verschiebt das Ticket in einen anderen Typ/Kategorie.'),
+    .setDescription('Move the ticket to a different type/category.'),
 
   async execute(client, interaction) {
     if (!client.isStaff(interaction.member)) {

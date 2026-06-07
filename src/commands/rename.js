@@ -4,10 +4,10 @@ const { getTicketByChannel } = require('../database');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('rename')
-    .setDescription('Benennt den Ticket-Kanal um.')
+    .setDescription('Rename the ticket channel.')
     .addStringOption(opt =>
       opt.setName('name')
-         .setDescription('Neuer Kanalname')
+         .setDescription('New channel name')
          .setRequired(true)
          .setMinLength(2)
          .setMaxLength(100)

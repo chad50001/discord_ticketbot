@@ -16,7 +16,7 @@ const { panelEmbed } = require('../utils/embeds');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setup')
-    .setDescription('Sendet das Ticket-Panel in den konfigurierten Kanal.')
+    .setDescription('Send the ticket panel to the configured channel.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(client, interaction) {

@@ -142,6 +142,7 @@
     "ticketAlreadyClaimed": "❌ This ticket has already been claimed by {user}!",
     "ticketClaimed": "🙋 Ticket claimed by {user}.",
     "ticketUnclaimed": "🙌 Ticket unclaimed by {user}.",
+    "topicUpdateWarning": "\n> ⚠️ *The channel topic will be updated shortly — Discord limits topic changes to 2 per 10 minutes, so this may take a moment.*",
     "ticketRenamed": "✏️ Ticket renamed to **{name}**.",
     "ticketMoved": "🔀 Ticket moved by {user} to **{type}**.",
     "ticketLimitReached": "❌ You can only have **{limit}** open tickets at a time.",

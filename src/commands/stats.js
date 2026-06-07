@@ -5,10 +5,10 @@ const { statsEmbed, userStatsEmbed } = require('../utils/embeds');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('stats')
-    .setDescription('Zeigt Ticket-Statistiken.')
+    .setDescription('Show ticket statistics.')
     .addUserOption(opt =>
-      opt.setName('nutzer')
-         .setDescription('Statistiken für einen bestimmten Nutzer anzeigen')
+      opt.setName('user')
+         .setDescription('Show statistics for a specific user')
          .setRequired(false)
     ),
 
@@ -17,7 +17,7 @@ module.exports = {
       return interaction.reply({ content: client.t('messages.onlyStaff'), flags: MessageFlags.Ephemeral });
     }
 
-    const targetUser = interaction.options.getUser('nutzer');
+    const targetUser = interaction.options.getUser('user');
 
     if (targetUser) {
       const stats = getUserStats(targetUser.id, interaction.guildId);
