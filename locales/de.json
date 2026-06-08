@@ -207,6 +207,7 @@
     "priorityAlreadySet": "ℹ️ Die Priorität ist bereits auf **{priority}** gesetzt.",
     "selectMoveTargetCurrent": "🔀 **Ticket verschieben** (aktuell: **{type}**)\nWohin soll dieses Ticket verschoben werden?",
     "autoCloseReason": "Automatisch geschlossen wegen Inaktivität",
+    "deleteReason": "Ticket gelöscht von {user}",
     "staffReminderTitle": "⏰ **Keine Staff-Antwort seit {hours} Stunden!**",
     "staffReminderBody": "Ticket <#{channel}> (Typ: **{type}**, Priorität: **{priority}**) wartet auf eine Rückmeldung.",
     "staffReplyTitle": "🔔 Staff hat auf dein Ticket geantwortet!",

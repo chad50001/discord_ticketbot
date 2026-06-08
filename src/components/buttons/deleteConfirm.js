@@ -11,7 +11,7 @@ module.exports = {
     await interaction.reply({ content: client.t('messages.deletingChannel'), flags: MessageFlags.Ephemeral }).catch(() => null);
 
     try {
-      await interaction.channel.delete(`Ticket gelöscht von ${interaction.user.tag}`);
+      await interaction.channel.delete(client.t('messages.deleteReason', { user: interaction.user.tag }));
       client.logger.info(`[Delete] Channel ${interaction.channelId} deleted by ${interaction.user.tag}`);
     } catch (err) {
       client.logger.error('[Delete] Failed to delete channel:', err);

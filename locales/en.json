@@ -207,6 +207,7 @@
     "priorityAlreadySet": "ℹ️ The priority is already set to **{priority}**.",
     "selectMoveTargetCurrent": "🔀 **Move ticket** (current: **{type}**)\nWhere should this ticket be moved to?",
     "autoCloseReason": "Automatically closed due to inactivity",
+    "deleteReason": "Ticket deleted by {user}",
     "staffReminderTitle": "⏰ **No staff response for {hours} hours!**",
     "staffReminderBody": "Ticket <#{channel}> (type: **{type}**, priority: **{priority}**) is awaiting a response.",
     "staffReplyTitle": "🔔 Staff replied to your ticket!",
