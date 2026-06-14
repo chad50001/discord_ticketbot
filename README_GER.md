@@ -58,7 +58,7 @@ Anstatt Transkripte als Dateianhang per DM zu versenden, kann der Bot sie auf **
 
 ### Abo-Modelle
 
-| Feature | Basic (kostenlos) | Premium (5 €/Monat) | Premium+ (10 €/Monat) |
+| Feature | Basic (kostenlos) | Premium (4 $/Monat) | Premium+ (8 $/Monat) |
 |---|---|---|---|
 | Transkript als Link | ✅ | ✅ | ✅ |
 | Max. Transkriptgröße | 10 MB | 100 MB | 250 MB |

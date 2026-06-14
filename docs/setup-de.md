@@ -35,7 +35,7 @@ Premium-Nutzer erhalten zusätzlich herunterladbare Dateianhänge im Transkript 
 
 ## 2. Abo-Modelle im Überblick
 
-| Feature | Basic (kostenlos) | Premium (5 €/Monat) | Premium+ (10 €/Monat) |
+| Feature | Basic (kostenlos) | Premium (4 $/Monat) | Premium+ (8 $/Monat) |
 |---|---|---|---|
 | Transkript als Link | ✅ | ✅ | ✅ |
 | Max. Transkriptgröße | 10 MB | 100 MB | 250 MB |

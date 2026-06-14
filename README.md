@@ -58,7 +58,7 @@ Instead of sending transcripts as file attachments via DM, the bot can upload th
 
 ### Subscription Tiers
 
-| Feature | Basic (free) | Premium (€5/mo) | Premium+ (€10/mo) |
+| Feature | Basic (free) | Premium ($4/mo) | Premium+ ($8/mo) |
 |---|---|---|---|
 | Transcript as link | ✅ | ✅ | ✅ |
 | Max. transcript size | 10 MB | 100 MB | 250 MB |
