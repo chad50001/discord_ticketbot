@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unsupported attachment file types are now skipped instead of failing the whole
   transcript upload over a single file.
 
+## [2.2.1] - 2026-06-18
+
 ### Fixed
 - Transcript **"Closed on"** now shows the actual close time. It was empty
   because the transcript is generated before the close is written to the DB.
