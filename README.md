@@ -553,6 +553,14 @@ Full documentation: **[docu.msk-scripts.de](https://docu.msk-scripts.de/discord/
 
 ---
 
+## 🤝 Contributing
+
+Contributions are welcome! Please read the **[Contributing Guidelines](CONTRIBUTING.md)**
+before opening an issue or pull request. By participating you agree to our
+[Code of Conduct](CODE_OF_CONDUCT.md). Found a security issue? See [SECURITY.md](SECURITY.md).
+
+---
+
 ## 📝 License
 
 AGPL-3.0 — Source code must remain open and be published under the same license when distributed or hosted.

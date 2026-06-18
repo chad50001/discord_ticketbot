@@ -550,6 +550,14 @@ Vollständige Dokumentation: **[docu.msk-scripts.de](https://docu.msk-scripts.de
 
 ---
 
+## 🤝 Mitwirken
+
+Beiträge sind willkommen! Bitte lies vorher die **[Contributing-Richtlinien](CONTRIBUTING.md)**,
+bevor du ein Issue oder einen Pull Request eröffnest. Mit deiner Teilnahme stimmst du
+unserem [Code of Conduct](CODE_OF_CONDUCT.md) zu. Sicherheitslücke gefunden? Siehe [SECURITY.md](SECURITY.md).
+
+---
+
 ## 📝 Lizenz
 
 AGPL-3.0 — Quellcode muss bei Weitergabe oder Hosting offen bleiben und unter der gleichen Lizenz veröffentlicht werden.
