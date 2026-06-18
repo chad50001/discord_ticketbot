@@ -270,7 +270,7 @@ async function performClose(client, channel, ticket, closer, reason) {
 
   if (cfg.createTranscript) {
     try {
-      transcriptHtml = await generateTranscript(channel, ticket, channel.guild.name);
+      transcriptHtml = await generateTranscript(channel, ticket, channel.guild.name, client.config.transcriptDesign);
     } catch (err) {
       client.logger.error('[performClose] Transcript generation error:', err);
     }

@@ -5,6 +5,7 @@
   // ─── Bot Appearance ──────────────────────────────────────────────────────────
   "mainColor": "#5eb131",
   "lang": "en",                    // "de" or "en"
+  "transcriptDesign": "modern",    // HTML transcript style: "modern" (new MSK design) or "classic" (old Discord-style)
 
   // ─── Ticket Panel ────────────────────────────────────────────────────────────
   "openTicketChannelId": "CHANNEL_ID_HERE",

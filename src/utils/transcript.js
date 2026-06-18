@@ -135,17 +135,14 @@ async function buildAvatarMap(messages) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 /**
- * Generate a self-contained HTML transcript.
- * @param {import('discord.js').TextChannel} channel
- * @param {object} ticketInfo  DB ticket row
- * @param {string} guildName
- * @returns {Promise<string>} Full HTML string
+ * Build the shared message markup (identical for both designs — the renderers
+ * only differ in surrounding chrome/CSS, the per-message DOM stays the same).
+ * @param {import('discord.js').Message[]} messages
+ * @param {Map<string,string>} avatarMap
+ * @returns {string}
  */
-async function generateTranscript(channel, ticketInfo, guildName) {
-  const messages  = await fetchAllMessages(channel);
-  const avatarMap = await buildAvatarMap(messages);
-
-  const messageRows = messages.map(msg => {
+function buildMessageRows(messages, avatarMap) {
+  return messages.map(msg => {
     const avatarSrc = avatarMap.get(msg.author.id) ?? '';
     const isBot     = msg.author.bot ? '<span class="badge bot">BOT</span>' : '';
     const timestamp = formatDate(msg.createdAt);
@@ -179,16 +176,18 @@ async function generateTranscript(channel, ticketInfo, guildName) {
           <div class="message-header">
             <span class="username">${escapeHtml(msg.author.displayName ?? msg.author.username)}</span>
             ${isBot}
-            <span class="timestamp">${timestamp}</span>
+            <time class="timestamp">${timestamp}</time>
           </div>
           ${content}${attachments}${embeds}
         </div>
       </div>`;
   }).join('');
+}
 
-  const openedAt = formatDate(new Date(ticketInfo.created_at));
-  const closedAt = ticketInfo.closed_at ? formatDate(new Date(ticketInfo.closed_at)) : '—';
-
+/**
+ * Classic design — the original Discord-inspired dark transcript.
+ */
+function renderClassic({ ticketInfo, channel, guildName, messageRows, messageCount, openedAt, closedAt }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -255,7 +254,7 @@ async function generateTranscript(channel, ticketInfo, guildName) {
         <div class="meta-item"><strong>Closed on</strong>${closedAt}</div>
         ${ticketInfo.claimed_by ? `<div class="meta-item"><strong>Claimed by</strong>&lt;@${ticketInfo.claimed_by}&gt;</div>` : ''}
         <div class="meta-item"><strong>Priority</strong>${escapeHtml(ticketInfo.priority)}</div>
-        <div class="meta-item"><strong>Messages</strong>${messages.length}</div>
+        <div class="meta-item"><strong>Messages</strong>${messageCount}</div>
       </div>
     </div>
   </div>
@@ -267,6 +266,217 @@ async function generateTranscript(channel, ticketInfo, guildName) {
   </div>
 </body>
 </html>`;
+}
+
+/**
+ * Modern design — minimal MSK-branded layout. Self-contained (no external
+ * requests / offline-safe), system + monospace fonts only.
+ */
+function renderModern({ ticketInfo, channel, guildName, messageRows, messageCount, openedAt, closedAt }) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticket #${ticketInfo.id} – ${escapeHtml(channel.name)}</title>
+  <style>
+    /* ─── MSK Scripts — Ticket Transcript (modern) ──────────────────────── */
+    :root {
+      --bg:          #1c1f26;
+      --bg-2:        #21252e;
+      --panel:       #272c37;
+      --panel-2:     #2e333f;
+      --line:        rgba(255,255,255,.10);
+      --line-strong: rgba(255,255,255,.16);
+      --accent:      #2ee676;
+      --accent-dim:  rgba(46,230,118,.16);
+      --text:        #f3f4f7;
+      --text-2:      #c7cad3;
+      --muted:       #8b909c;
+      --radius:      14px;
+      --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", "Segoe UI Mono", Consolas, monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      background:
+        radial-gradient(1100px 460px at 50% -240px, rgba(46,230,118,.14), transparent 70%),
+        var(--bg);
+      background-attachment: fixed;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding: 0 20px 80px;
+    }
+    .wrap { max-width: 880px; margin: 0 auto; }
+
+    a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+    a:hover { border-bottom-color: rgba(46,230,118,.5); }
+    code { background: var(--bg-2); padding: 1.5px 6px; border-radius: 5px; font-family: var(--mono); font-size: .85em; border: 1px solid var(--line); }
+    pre { background: var(--bg-2); padding: 14px 16px; border-radius: 10px; overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); }
+    pre code { background: none; padding: 0; border: 0; }
+    blockquote { border-left: 3px solid var(--accent); padding: 2px 14px; margin: 6px 0; color: var(--text-2); }
+    strong { color: #fff; }
+    .spoiler { background: #14161b; color: transparent; border-radius: 4px; cursor: pointer; padding: 0 3px; }
+    .spoiler:hover { color: inherit; background: var(--bg-2); }
+    .mention { background: var(--accent-dim); color: var(--accent); border-radius: 5px; padding: 0 5px; font-weight: 500; }
+
+    /* ─── Header card ─────────────────────────────────────────────────── */
+    .header {
+      position: relative; overflow: hidden;
+      background: linear-gradient(180deg, var(--panel) 0%, var(--bg-2) 100%);
+      border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 30px 32px 26px; margin: 40px 0 14px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.32);
+    }
+    .header::before {
+      content: ""; position: absolute; inset: 0 auto 0 0; width: 3px;
+      background: linear-gradient(180deg, var(--accent), transparent);
+    }
+    .eyebrow {
+      font-family: var(--mono); font-size: 11px; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .header h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; color: #fff; line-height: 1.1; }
+    .header h1 span { color: var(--accent); font-family: var(--mono); font-weight: 700; }
+    .subtitle { color: var(--text-2); margin-top: 6px; font-size: 14px; }
+    .subtitle b { color: var(--text); font-weight: 600; }
+
+    /* Flex chips so the last row stretches to fill — no empty grid cells. */
+    .meta-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .meta-item {
+      flex: 1 1 150px; min-width: 140px;
+      background: var(--panel-2); border: 1px solid var(--line);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .meta-item .k {
+      font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px;
+    }
+    .meta-item .v { color: var(--text); font-size: 14px; font-weight: 500; word-break: break-word; }
+
+    .badge {
+      font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .08em;
+      padding: 2px 6px; border-radius: 5px; margin-left: 6px; vertical-align: middle; text-transform: uppercase;
+    }
+    .badge.bot { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(46,230,118,.35); }
+
+    /* ─── Messages ────────────────────────────────────────────────────── */
+    .section-label {
+      font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--muted); padding: 26px 6px 12px; display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+    .messages { display: flex; flex-direction: column; }
+    .message {
+      display: flex; gap: 16px; padding: 11px 14px;
+      border-radius: 12px; transition: background .12s ease;
+    }
+    .message:hover { background: var(--panel); }
+    .avatar {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+      background: var(--panel-2); border: 1px solid var(--line-strong);
+    }
+    .message-body { flex: 1; min-width: 0; }
+    .message-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+    .username { font-weight: 600; color: #fff; font-size: 15px; }
+    .timestamp { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .02em; }
+    .msg-content { word-break: break-word; color: var(--text); }
+
+    .attachment-img {
+      max-width: 420px; max-height: 320px; border-radius: 10px; margin-top: 8px;
+      display: block; border: 1px solid var(--line);
+    }
+    .attachment-file {
+      display: inline-flex; align-items: center; gap: 6px; background: var(--panel-2);
+      padding: 8px 14px; border-radius: 8px; margin-top: 8px; font-size: 13px;
+      border: 1px solid var(--line); color: var(--text-2);
+    }
+    .embed {
+      background: var(--panel-2); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0;
+      padding: 12px 16px; margin-top: 8px; max-width: 540px; border: 1px solid var(--line); border-left-width: 3px;
+    }
+    .embed-title { font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .embed-desc { color: var(--text-2); font-size: 14px; }
+
+    .empty { color: var(--muted); text-align: center; padding: 60px 0; font-family: var(--mono); letter-spacing: .04em; }
+
+    /* ─── Footer ──────────────────────────────────────────────────────── */
+    .footer {
+      text-align: center; padding: 34px 0 0; margin-top: 30px;
+      border-top: 1px solid var(--line); color: var(--muted); font-size: 12px;
+    }
+    .footer .brand { color: var(--text-2); font-weight: 600; }
+    .footer .brand b { color: var(--accent); }
+    .footer .gen { font-family: var(--mono); font-size: 11px; margin-top: 6px; letter-spacing: .03em; }
+
+    @media (max-width: 560px) {
+      body { padding: 0 12px 60px; font-size: 14px; }
+      .header { padding: 24px 20px; margin-top: 24px; }
+      .header h1 { font-size: 24px; }
+      .message { gap: 12px; padding: 10px 8px; }
+      .avatar { width: 36px; height: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <div class="eyebrow"><span class="dot"></span> Ticket Transcript</div>
+      <h1>Ticket <span>#${ticketInfo.id}</span></h1>
+      <div class="subtitle"><b>${escapeHtml(channel.name)}</b> — ${escapeHtml(guildName)}</div>
+      <div class="meta-grid">
+        <div class="meta-item"><span class="k">Type</span><span class="v">${escapeHtml(ticketInfo.type)}</span></div>
+        <div class="meta-item"><span class="k">Created by</span><span class="v">&lt;@${ticketInfo.creator_id}&gt;</span></div>
+        <div class="meta-item"><span class="k">Created on</span><span class="v">${openedAt}</span></div>
+        <div class="meta-item"><span class="k">Closed on</span><span class="v">${closedAt}</span></div>
+        ${ticketInfo.claimed_by ? `<div class="meta-item"><span class="k">Claimed by</span><span class="v">&lt;@${ticketInfo.claimed_by}&gt;</span></div>` : ''}
+        <div class="meta-item"><span class="k">Priority</span><span class="v">${escapeHtml(ticketInfo.priority)}</span></div>
+        <div class="meta-item"><span class="k">Messages</span><span class="v">${messageCount}</span></div>
+      </div>
+    </header>
+
+    <div class="section-label">Conversation</div>
+    <main class="messages">
+      ${messageRows || '<p class="empty">No messages in this ticket</p>'}
+    </main>
+
+    <footer class="footer">
+      <div class="brand">MSK <b>Scripts</b> · Discord Ticket Bot</div>
+      <div class="gen">Generated on ${formatDate(new Date())}</div>
+    </footer>
+  </div>
+</body>
+</html>`;
+}
+
+/**
+ * Generate a self-contained HTML transcript.
+ * @param {import('discord.js').TextChannel} channel
+ * @param {object} ticketInfo  DB ticket row
+ * @param {string} guildName
+ * @param {string} [design]  "modern" (default) or "classic"
+ * @returns {Promise<string>} Full HTML string
+ */
+async function generateTranscript(channel, ticketInfo, guildName, design = 'modern') {
+  const messages  = await fetchAllMessages(channel);
+  const avatarMap = await buildAvatarMap(messages);
+
+  const messageRows = buildMessageRows(messages, avatarMap);
+  const openedAt    = formatDate(new Date(ticketInfo.created_at));
+  const closedAt    = ticketInfo.closed_at ? formatDate(new Date(ticketInfo.closed_at)) : '—';
+
+  const ctx = {
+    ticketInfo, channel, guildName,
+    messageRows, messageCount: messages.length, openedAt, closedAt,
+  };
+
+  return design === 'classic' ? renderClassic(ctx) : renderModern(ctx);
 }
 
 module.exports = { generateTranscript };
