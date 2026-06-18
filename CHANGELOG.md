@@ -11,6 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-06-18
+
+### Fixed
+- Transcript **"Closed on"** now shows the actual close time. It was empty
+  because the transcript is generated before the close is written to the DB.
+- **Custom Discord emojis** (`<:name:id>` / `<a:name:id>`) are now rendered —
+  embedded as Base64 (offline-safe), with a `:name:` text fallback if the image
+  can't be fetched. Previously they appeared as raw text.
+- **Fenced code blocks** no longer start with an empty first line.
+
+### Added
+- Code blocks with a language fence show the language as a small label
+  (e.g. `LUA`) — top-right of the block. No syntax colouring (kept
+  dependency-free).
+
 ## [2.2.0] - 2026-06-18
 
 ### Added
