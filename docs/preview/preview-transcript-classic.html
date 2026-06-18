@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ticket #42 – ticket-0042-support</title>
+  <title>Ticket #41 – ticket-musiker15</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -13,8 +13,11 @@
     }
     a { color: #00aff4; }
     code { background: #2b2d31; padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 13px; }
-    pre { background: #2b2d31; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 6px 0; }
+    pre { position: relative; background: #2b2d31; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 6px 0; }
+    pre.has-lang { padding-top: 28px; }
     pre code { background: none; padding: 0; }
+    .code-lang { position: absolute; top: 7px; right: 10px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #72767d; }
+    .emoji { width: 1.375em; height: 1.375em; vertical-align: bottom; object-fit: contain; }
     blockquote { border-left: 4px solid #4f545c; padding: 0 12px; margin: 4px 0; color: #b9bbbe; }
     .spoiler { background: #202225; color: transparent; border-radius: 3px; cursor: pointer; }
     .spoiler:hover { color: inherit; }
@@ -55,16 +58,18 @@
 <body>
   <div class="header">
     <div>
-      <h1>🎫 Ticket <span>#42</span></h1>
-      <div style="color:#b9bbbe;margin-top:4px;">ticket-0042-support — MSK Scripts Community</div>
+      <h1>🎫 Ticket <span>#41</span></h1>
+      <div style="color:#b9bbbe;margin-top:4px;">ticket-musiker15 — MSK Scripts</div>
       <div class="meta-grid">
-        <div class="meta-item"><strong>Type</strong>Support</div>
-        <div class="meta-item"><strong>Created by</strong>&lt;@100&gt;</div>
+        <div class="meta-item"><strong>Type</strong>Custom Order</div>
+        <div class="meta-item"><strong>Created by</strong>Musiker15</div>
         <div class="meta-item"><strong>Created on</strong>18/06/2026, 14:00</div>
-        <div class="meta-item"><strong>Closed on</strong>18/06/2026, 14:15</div>
-        <div class="meta-item"><strong>Claimed by</strong>&lt;@102&gt;</div>
-        <div class="meta-item"><strong>Priority</strong>High</div>
+        <div class="meta-item"><strong>Closed on</strong>18/06/2026, 14:10</div>
+        <div class="meta-item"><strong>Closed by</strong>StaffAnna</div>
+        <div class="meta-item"><strong>Claimed by</strong>Moritz</div>
+        <div class="meta-item"><strong>Priority</strong>medium</div>
         <div class="meta-item"><strong>Messages</strong>5</div>
+        <div class="meta-item"><strong>Close reason</strong>Issue resolved — DB host fixed.</div>
       </div>
     </div>
   </div>
@@ -74,11 +79,11 @@
         <img class="avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='20' fill='%2336393f'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-size='18' fill='%2372767d'>?</text></svg>" alt="">
         <div class="message-body">
           <div class="message-header">
-            <span class="username">lukas_dev</span>
+            <span class="username">Musiker15</span>
             
-            <time class="timestamp">18/06/2026, 14:12</time>
+            <time class="timestamp">18/06/2026, 14:08</time>
           </div>
-          <div class="msg-content">It works now, thank you! 🎉</div>
+          <div class="msg-content">Perfect, it works now. Thanks <span class="mention">@Moritz</span>! 🎉</div>
         </div>
       </div>
       <div class="message">
@@ -87,20 +92,31 @@
           <div class="message-header">
             <span class="username">Moritz</span>
             
-            <time class="timestamp">18/06/2026, 14:08</time>
+            <time class="timestamp">18/06/2026, 14:05</time>
           </div>
-          <div class="msg-content">Looks like the <code>DB_HOST</code> in your <code>.env</code> points to localhost. Use the container name instead.</div><div class="embed" style="border-left: 4px solid #00e676"><div class="embed-title">Fix applied</div><div class="embed-desc">Updated <code>.env</code> → restarting the bot via PM2.</div></div>
+          <div class="msg-content">And one <strong>with</strong> a language label:<br><pre class="has-lang"><span class="code-lang">lua</span><code>-- Code Block mit lua highlighting<br>local test = function()<br>    return true<br>end</code></pre></div>
         </div>
       </div>
       <div class="message">
         <img class="avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='20' fill='%2336393f'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-size='18' fill='%2372767d'>?</text></svg>" alt="">
         <div class="message-body">
           <div class="message-header">
-            <span class="username">lukas_dev</span>
+            <span class="username">Musiker15</span>
             
-            <time class="timestamp">18/06/2026, 14:05</time>
+            <time class="timestamp">18/06/2026, 14:02</time>
           </div>
-          <div class="msg-content">Here it is. The DB host seems wrong.</div>
+          <div class="msg-content"><blockquote>A short quote</blockquote><br>Code block <strong>without</strong> language:<br><pre><code>code block blabla</code></pre></div>
+        </div>
+      </div>
+      <div class="message">
+        <img class="avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='20' fill='%2336393f'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-size='18' fill='%2372767d'>?</text></svg>" alt="">
+        <div class="message-body">
+          <div class="message-header">
+            <span class="username">Musiker15</span>
+            
+            <time class="timestamp">18/06/2026, 14:01</time>
+          </div>
+          <div class="msg-content">Hey, I need help with <strong>bold</strong>, <em>italic</em>, <s>strike</s> and a custom emoji <img class="emoji" src="data:image/png;base64,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" alt=":susge:" title=":susge:"> plus inline <code>code inline</code>.</div>
         </div>
       </div>
       <div class="message">
@@ -109,25 +125,14 @@
           <div class="message-header">
             <span class="username">MSK Support</span>
             <span class="badge bot">BOT</span>
-            <time class="timestamp">18/06/2026, 14:03</time>
+            <time class="timestamp">18/06/2026, 14:00</time>
           </div>
-          <div class="msg-content">Sure! Can you share the error from <code>journalctl</code>?<br><pre><code><br>Error: ECONNREFUSED 127.0.0.1:3306<br></code></pre></div>
-        </div>
-      </div>
-      <div class="message">
-        <img class="avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='20' fill='%2336393f'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-size='18' fill='%2372767d'>?</text></svg>" alt="">
-        <div class="message-body">
-          <div class="message-header">
-            <span class="username">lukas_dev</span>
-            
-            <time class="timestamp">18/06/2026, 14:01</time>
-          </div>
-          <div class="msg-content">Hey, I need help setting up the <strong>config.jsonc</strong> for my hosted bot.</div>
+          <div class="msg-content">Hello <span class="mention">@Musiker15</span>! Thank you for opening a ticket. A team member will be with you shortly.</div><div class="embed" style="border-left: 4px solid #2ee676"><div class="embed-title">Ticket Opened</div><div class="embed-desc">Hello <span class="mention">@Musiker15</span> 👋<br><strong>Type:</strong> Custom Order<br><strong>Priority:</strong> 🟡 Medium</div></div>
         </div>
       </div>
   </div>
   <div class="footer">
-    Generated on 18/06/2026, 16:39 · Discord Ticket Bot
+    Generated on 18/06/2026, 17:54 · Discord Ticket Bot
   </div>
 </body>
 </html>
