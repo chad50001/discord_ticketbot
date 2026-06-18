@@ -25,6 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code blocks with a language fence show the language as a small label
   (e.g. `LUA`) — top-right of the block. No syntax colouring (kept
   dependency-free).
+- Transcript header now shows **"Closed by"** and the **close reason**
+  (the reason only appears when one was actually provided).
+
+### Changed
+- Header fields (**Created by** / **Claimed by** / **Closed by**) and in-message
+  user mentions now show the member's **display name** instead of the raw user
+  id. Names are resolved for free from the messages and only fetched from the
+  guild for participants who never posted; unresolvable ids fall back to the id.
 
 ## [2.2.0] - 2026-06-18
 
