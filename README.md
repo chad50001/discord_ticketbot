@@ -37,7 +37,7 @@ A modern, self-hosted Discord ticket bot built on **Discord.js v14** and **SQLit
 | ⏰ Auto-Close | Automatically close inactive tickets with a configurable warning period |
 | ♻️ Reopen Tickets | Reopen a closed ticket via the `♻️` button or `/reopen` — configurable, restores access & moves it back |
 | 🔗 Transcript Links | Transcripts stored online and accessible via a public link |
-| 📄 HTML Transcript | Full self-contained HTML transcript — avatars embedded as Base64, no CDN required |
+| 📄 HTML Transcript | Self-contained HTML transcript in a **modern or classic** style — avatars & custom emojis embedded as Base64, mentions and Created/Claimed/Closed-by shown as names instead of IDs, no CDN required |
 | 🌐 Custom Domain | Premium users can serve transcripts under their own domain |
 | 📊 Statistics | Server-wide stats and detailed per-user stats via `/stats` |
 | 🚫 Blacklist | `/blacklist add/remove/list` to block users from opening tickets |
@@ -480,6 +480,16 @@ Closed tickets can be reopened via a `♻️ Reopen` button on the closed-ticket
 ```
 
 Reopening restores the creator's channel access, moves the channel back to its ticket type's category and drops the `closed-` name prefix.
+
+### Transcript Design
+
+The HTML transcript can be rendered in a modern, minimal MSK-branded style or the classic Discord-style layout.
+
+```jsonc
+"transcriptDesign": "modern"   // "modern" (default) or "classic"
+```
+
+Both styles are fully self-contained (offline-safe): avatars and custom emojis are embedded as Base64, user mentions and the **Created by / Claimed by / Closed by** fields are shown as display names instead of raw IDs, and the header includes the closer and the close reason (the reason only when one was provided).
 
 ### Predefined Priority per Ticket Type
 

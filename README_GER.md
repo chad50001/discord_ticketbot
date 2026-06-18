@@ -37,7 +37,7 @@ Ein moderner, selbst-gehosteter Discord-Ticket-Bot auf Basis von **Discord.js v1
 | ⏰ Auto-Close | Inaktive Tickets automatisch schließen mit konfigurierbarem Warn-Vorlauf |
 | ♻️ Ticket wieder öffnen | Geschlossenes Ticket per `♻️`-Button oder `/reopen` wieder öffnen — konfigurierbar, stellt Zugriff & Kategorie wieder her |
 | 🔗 Transcript-Links | Transkripte werden online gespeichert und sind per Link abrufbar |
-| 📄 HTML-Transcript | Vollständiges, self-contained HTML-Transcript — Avatare als Base64 eingebettet |
+| 📄 HTML-Transcript | Self-contained HTML-Transcript im **modernen oder klassischen** Design — Avatare & Custom-Emojis als Base64 eingebettet, Mentions sowie Created/Claimed/Closed-by als Namen statt IDs, kein CDN nötig |
 | 🌐 Eigene Domain | Premium-Nutzer können Transkripte unter ihrer eigenen Domain abrufen |
 | 📊 Statistiken | Server-weite Stats sowie detaillierte Per-Nutzer-Stats per `/stats` |
 | 🚫 Blacklist | `/blacklist add/remove/list` zum Sperren von Nutzern |
@@ -477,6 +477,16 @@ Geschlossene Tickets lassen sich über einen `♻️ Wieder öffnen`-Button in d
 ```
 
 Beim Wiederöffnen werden die Zugriffsrechte des Erstellers wiederhergestellt, der Kanal zurück in die Kategorie des Ticket-Typs verschoben und das `closed-`-Präfix entfernt.
+
+### Transcript-Design
+
+Das HTML-Transcript kann in einem modernen, minimalen MSK-Design oder im klassischen Discord-Stil gerendert werden.
+
+```jsonc
+"transcriptDesign": "modern"   // "modern" (Standard) oder "classic"
+```
+
+Beide Designs sind vollständig self-contained (offline-tauglich): Avatare und Custom-Emojis werden als Base64 eingebettet, User-Mentions sowie die Felder **Created by / Claimed by / Closed by** werden als Anzeigenamen statt roher IDs dargestellt, und der Header enthält den Schließenden sowie den Schließgrund (Grund nur, falls einer angegeben wurde).
 
 ### Vordefinierte Priorität pro Ticket-Typ
 
