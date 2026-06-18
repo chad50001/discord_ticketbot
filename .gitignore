@@ -40,6 +40,7 @@ yarn-error.log*
 *.swo
 .claude/
 CLAUDE.md
+TODO.md
 
 # OS
 .DS_Store
