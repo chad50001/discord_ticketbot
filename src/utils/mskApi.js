@@ -22,8 +22,11 @@ async function uploadTranscript({ ticketId, transcriptHtml, attachments = [] }) 
     return { success: false, url: null, error: 'MSK_API_KEY is not configured.' };
   }
 
-  // Convert Buffer attachments to base64
+  // Convert Buffer attachments to base64. `id` (when present) is the stable UUID
+  // the transcript HTML already references as attachments/<id>.<ext>; the server
+  // stores the file under exactly that name so the relative link resolves.
   const serializedAttachments = attachments.map(att => ({
+    ...(att.id ? { id: att.id } : {}),
     name:     att.name,
     mimeType: att.mimeType,
     data:     Buffer.isBuffer(att.data)

@@ -259,9 +259,14 @@ async function buildNameMap(channel, messages, extraIds = []) {
  * @param {Map<string,string>} avatarMap
  * @param {Map<string,string>} emojiMap
  * @param {Map<string,string>} nameMap
+ * @param {Map<string,string>} [attachmentUrls]  Discord attachment id → relative
+ *        URL of the locally-stored copy (e.g. "attachments/<uuid>.png"). When an
+ *        id is present the transcript links the persistent local file instead of
+ *        the Discord CDN URL (those are signed and expire after ~24h). Missing
+ *        ids fall back to the Discord URL.
  * @returns {string}
  */
-function buildMessageRows(messages, avatarMap, emojiMap, nameMap) {
+function buildMessageRows(messages, avatarMap, emojiMap, nameMap, attachmentUrls) {
   return messages.map(msg => {
     const avatarSrc = avatarMap.get(msg.author.id) ?? '';
     const isBot     = msg.author.bot ? '<span class="badge bot">BOT</span>' : '';
@@ -273,10 +278,13 @@ function buildMessageRows(messages, avatarMap, emojiMap, nameMap) {
 
     const attachments = msg.attachments.size > 0
       ? [...msg.attachments.values()].map(att => {
+          // Prefer the locally-stored copy (permanent); fall back to the Discord
+          // CDN URL (signed, expires ~24h) only when the file wasn't uploaded.
+          const url = attachmentUrls?.get(att.id) ?? att.url;
           if (att.contentType?.startsWith('image/')) {
-            return `<img class="attachment-img" src="${att.url}" alt="${escapeHtml(att.name)}" loading="lazy">`;
+            return `<img class="attachment-img" src="${escapeHtml(url)}" alt="${escapeHtml(att.name)}" loading="lazy">`;
           }
-          return `<a class="attachment-file" href="${att.url}" target="_blank">📎 ${escapeHtml(att.name)}</a>`;
+          return `<a class="attachment-file" href="${escapeHtml(url)}" target="_blank">📎 ${escapeHtml(att.name)}</a>`;
         }).join('')
       : '';
 
@@ -592,16 +600,18 @@ function renderModern({ ticketInfo, channel, guildName, messageRows, messageCoun
  * @param {object} ticketInfo  DB ticket row
  * @param {string} guildName
  * @param {string} [design]  "modern" (default) or "classic"
+ * @param {Map<string,string>} [attachmentUrls]  Discord attachment id → relative
+ *        URL of the locally-stored copy. See buildMessageRows.
  * @returns {Promise<string>} Full HTML string
  */
-async function generateTranscript(channel, ticketInfo, guildName, design = 'modern') {
+async function generateTranscript(channel, ticketInfo, guildName, design = 'modern', attachmentUrls = null) {
   const messages  = await fetchAllMessages(channel);
   const avatarMap = await buildAvatarMap(messages);
   const emojiMap  = await buildEmojiMap(messages);
   const nameMap   = await buildNameMap(channel, messages,
     [ticketInfo.creator_id, ticketInfo.claimed_by, ticketInfo.closed_by]);
 
-  const messageRows = buildMessageRows(messages, avatarMap, emojiMap, nameMap);
+  const messageRows = buildMessageRows(messages, avatarMap, emojiMap, nameMap, attachmentUrls);
   const openedAt    = formatDate(new Date(ticketInfo.created_at));
   const closedAt    = ticketInfo.closed_at ? formatDate(new Date(ticketInfo.closed_at)) : '—';
 

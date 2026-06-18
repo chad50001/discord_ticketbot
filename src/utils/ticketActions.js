@@ -11,6 +11,8 @@ const {
   EmbedBuilder,
   AttachmentBuilder,
 } = require('discord.js');
+const path = require('path');
+const { randomUUID } = require('crypto');
 const db = require('../database');
 const { generateTranscript } = require('./transcript');
 const { uploadTranscript }   = require('./mskApi');
@@ -275,16 +277,22 @@ async function performClose(client, channel, ticket, closer, reason) {
     ticket.closed_at    = ticket.closed_at    ?? Date.now();
     ticket.closed_by    = ticket.closed_by    ?? closer?.id ?? null;
     ticket.close_reason = ticket.close_reason ?? (reason || null);
+
+    // Collect attachments BEFORE generating the HTML so the transcript can link
+    // the persistent local copies (attachments/<uuid>.<ext>) instead of the
+    // Discord CDN URLs, which are signed and expire after ~24h.
+    const attachments    = await collectAttachments(channel, client);
+    const attachmentUrls = new Map(
+      attachments.map(a => [a.discordId, `attachments/${a.id}.${a.ext}`]),
+    );
+
     try {
-      transcriptHtml = await generateTranscript(channel, ticket, channel.guild.name, client.config.transcriptDesign);
+      transcriptHtml = await generateTranscript(channel, ticket, channel.guild.name, client.config.transcriptDesign, attachmentUrls);
     } catch (err) {
       client.logger.error('[performClose] Transcript generation error:', err);
     }
 
     if (transcriptHtml) {
-      // Collect attachments from the channel for premium tiers
-      const attachments = await collectAttachments(channel, client);
-
       const result = await uploadTranscript({
         ticketId:       ticket.id,
         transcriptHtml,
@@ -550,12 +558,26 @@ async function performMove(client, channel, ticket, newType, movedBy) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Mirror of the MSK upload route's allow-list. Types the server would reject
+// are skipped here so a single unsupported file can't fail the whole upload.
+const ALLOWED_ATTACHMENT_EXTS = new Set([
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'mp4', 'mp3', 'zip', 'txt',
+]);
+
+/** Lowercased, allow-listed file extension or null. */
+function safeAttachmentExt(name) {
+  const ext = path.extname(name || '').slice(1).toLowerCase();
+  return ALLOWED_ATTACHMENT_EXTS.has(ext) ? ext : null;
+}
+
 /**
  * Collect all attachments from the channel messages.
- * These are sent to the MSK API so premium users can download them from the transcript.
+ * These are sent to the MSK API so premium users can download them from the
+ * transcript. Each gets a stable UUID + extension so the transcript HTML can
+ * link the stored copy (attachments/<uuid>.<ext>) — see performClose.
  * @param {import('discord.js').TextChannel} channel
  * @param {object} client
- * @returns {Promise<Array<{name: string, data: Buffer, mimeType: string}>>}
+ * @returns {Promise<Array<{id: string, discordId: string, ext: string, name: string, data: Buffer, mimeType: string}>>}
  */
 async function collectAttachments(channel, client) {
   if (!process.env.MSK_API_KEY) return [];
@@ -572,14 +594,22 @@ async function collectAttachments(channel, client) {
 
       for (const msg of batch.values()) {
         for (const att of msg.attachments.values()) {
+          // Skip types the server would reject — keeps the upload from failing
+          // wholesale over one unsupported file (it falls back to the Discord
+          // link in the transcript).
+          const ext = safeAttachmentExt(att.name);
+          if (!ext) continue;
           try {
             const res    = await fetch(att.url);
             if (!res.ok) continue;
             const buffer = Buffer.from(await res.arrayBuffer());
             attachments.push({
-              name:     att.name,
-              data:     buffer,
-              mimeType: att.contentType ?? 'application/octet-stream',
+              id:        randomUUID(),
+              discordId: att.id,
+              ext,
+              name:      att.name,
+              data:      buffer,
+              mimeType:  att.contentType ?? 'application/octet-stream',
             });
           } catch (err) {
             client.logger?.warn(`[collectAttachments] Failed to fetch ${att.name}: ${err.message}`);
