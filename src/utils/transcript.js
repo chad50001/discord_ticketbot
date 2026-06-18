@@ -22,7 +22,7 @@ function escapeHtml(str) {
 // Custom Discord emoji syntax (in the raw, pre-escaped text): <:name:id> / <a:name:id>
 const EMOJI_RE = /<(a)?:(\w+):(\d+)>/g;
 
-function parseMarkdown(text, emojiMap) {
+function parseMarkdown(text, emojiMap, nameMap) {
   if (!text) return '';
   let html = escapeHtml(text);
 
@@ -50,7 +50,11 @@ function parseMarkdown(text, emojiMap) {
       ? `<img class="emoji" src="${uri}" alt=":${name}:" title=":${name}:">`
       : `:${name}:`;
   });
-  html = html.replace(/&lt;@!?(\d+)&gt;/g, '<span class="mention">@$1</span>');
+  // User mentions — resolve to the display name when known, else keep the id.
+  html = html.replace(/&lt;@!?(\d+)&gt;/g, (_full, id) => {
+    const name = nameMap && nameMap.get(id);
+    return `<span class="mention">@${name ? escapeHtml(name) : id}</span>`;
+  });
   html = html.replace(/&lt;#(\d+)&gt;/g, '<span class="mention">#$1</span>');
   html = html.replace(/&lt;@&amp;(\d+)&gt;/g, '<span class="mention">@role</span>');
   html = html.replace(/(https?:\/\/[^\s<>"]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
@@ -201,6 +205,51 @@ async function buildEmojiMap(messages) {
   return emojiMap;
 }
 
+/**
+ * Build a map of { userId → displayName } so that mentions and the header
+ * fields (Created/Claimed/Closed by) show a readable name instead of a raw id.
+ *
+ * Seeded for free from the messages (authors + resolved mentions); only the
+ * extra header ids that aren't covered are fetched from the guild/API. Any id
+ * that stays unresolved is simply left out (callers fall back to the id).
+ *
+ * @param {import('discord.js').TextChannel} channel
+ * @param {import('discord.js').Message[]} messages
+ * @param {string[]} [extraIds]  header ids to resolve even if they never posted
+ * @returns {Promise<Map<string, string>>}
+ */
+async function buildNameMap(channel, messages, extraIds = []) {
+  const map = new Map();
+  const put = (id, name) => { if (id && name && !map.has(String(id))) map.set(String(id), name); };
+
+  // Free: authors + anyone Discord already resolved as a mention.
+  for (const msg of messages) {
+    put(msg.author.id, msg.member?.displayName ?? msg.author.displayName ?? msg.author.username);
+    if (msg.mentions?.members) {
+      for (const m of msg.mentions.members.values()) put(m.id, m.displayName ?? m.user?.username);
+    }
+    if (msg.mentions?.users) {
+      for (const u of msg.mentions.users.values()) put(u.id, u.displayName ?? u.username);
+    }
+  }
+
+  // Resolve remaining header ids (creator/claimer/closer who may not have posted).
+  for (const id of extraIds) {
+    if (!id || map.has(String(id))) continue;
+    try {
+      const member = await channel.guild.members.fetch(id);
+      put(id, member.displayName ?? member.user?.username);
+    } catch {
+      try {
+        const user = await channel.client.users.fetch(id);
+        put(id, user.displayName ?? user.username);
+      } catch { /* leave unresolved → caller falls back to the id */ }
+    }
+  }
+
+  return map;
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 /**
@@ -209,16 +258,17 @@ async function buildEmojiMap(messages) {
  * @param {import('discord.js').Message[]} messages
  * @param {Map<string,string>} avatarMap
  * @param {Map<string,string>} emojiMap
+ * @param {Map<string,string>} nameMap
  * @returns {string}
  */
-function buildMessageRows(messages, avatarMap, emojiMap) {
+function buildMessageRows(messages, avatarMap, emojiMap, nameMap) {
   return messages.map(msg => {
     const avatarSrc = avatarMap.get(msg.author.id) ?? '';
     const isBot     = msg.author.bot ? '<span class="badge bot">BOT</span>' : '';
     const timestamp = formatDate(msg.createdAt);
 
     const content = msg.content
-      ? `<div class="msg-content">${parseMarkdown(msg.content, emojiMap)}</div>`
+      ? `<div class="msg-content">${parseMarkdown(msg.content, emojiMap, nameMap)}</div>`
       : '';
 
     const attachments = msg.attachments.size > 0
@@ -232,7 +282,7 @@ function buildMessageRows(messages, avatarMap, emojiMap) {
 
     const embeds = msg.embeds.map(e => {
       const title = e.title       ? `<div class="embed-title">${escapeHtml(e.title)}</div>`             : '';
-      const desc  = e.description ? `<div class="embed-desc">${parseMarkdown(e.description, emojiMap)}</div>`    : '';
+      const desc  = e.description ? `<div class="embed-desc">${parseMarkdown(e.description, emojiMap, nameMap)}</div>`    : '';
       const color = e.color != null
         ? `border-left: 4px solid #${e.color.toString(16).padStart(6, '0')}`
         : '';
@@ -257,7 +307,7 @@ function buildMessageRows(messages, avatarMap, emojiMap) {
 /**
  * Classic design — the original Discord-inspired dark transcript.
  */
-function renderClassic({ ticketInfo, channel, guildName, messageRows, messageCount, openedAt, closedAt }) {
+function renderClassic({ ticketInfo, channel, guildName, messageRows, messageCount, openedAt, closedAt, createdBy, claimedBy, closedBy, closeReason }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -322,12 +372,14 @@ function renderClassic({ ticketInfo, channel, guildName, messageRows, messageCou
       <div style="color:#b9bbbe;margin-top:4px;">${escapeHtml(channel.name)} — ${escapeHtml(guildName)}</div>
       <div class="meta-grid">
         <div class="meta-item"><strong>Type</strong>${escapeHtml(ticketInfo.type)}</div>
-        <div class="meta-item"><strong>Created by</strong>&lt;@${ticketInfo.creator_id}&gt;</div>
+        <div class="meta-item"><strong>Created by</strong>${createdBy}</div>
         <div class="meta-item"><strong>Created on</strong>${openedAt}</div>
         <div class="meta-item"><strong>Closed on</strong>${closedAt}</div>
-        ${ticketInfo.claimed_by ? `<div class="meta-item"><strong>Claimed by</strong>&lt;@${ticketInfo.claimed_by}&gt;</div>` : ''}
+        ${closedBy ? `<div class="meta-item"><strong>Closed by</strong>${closedBy}</div>` : ''}
+        ${claimedBy ? `<div class="meta-item"><strong>Claimed by</strong>${claimedBy}</div>` : ''}
         <div class="meta-item"><strong>Priority</strong>${escapeHtml(ticketInfo.priority)}</div>
         <div class="meta-item"><strong>Messages</strong>${messageCount}</div>
+        ${closeReason ? `<div class="meta-item"><strong>Close reason</strong>${closeReason}</div>` : ''}
       </div>
     </div>
   </div>
@@ -345,7 +397,7 @@ function renderClassic({ ticketInfo, channel, guildName, messageRows, messageCou
  * Modern design — minimal MSK-branded layout. Self-contained (no external
  * requests / offline-safe), system + monospace fonts only.
  */
-function renderModern({ ticketInfo, channel, guildName, messageRows, messageCount, openedAt, closedAt }) {
+function renderModern({ ticketInfo, channel, guildName, messageRows, messageCount, openedAt, closedAt, createdBy, claimedBy, closedBy, closeReason }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -434,6 +486,7 @@ function renderModern({ ticketInfo, channel, guildName, messageRows, messageCoun
       text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px;
     }
     .meta-item .v { color: var(--text); font-size: 14px; font-weight: 500; word-break: break-word; }
+    .meta-item--wide { flex-basis: 100%; }
 
     .badge {
       font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .08em;
@@ -508,12 +561,14 @@ function renderModern({ ticketInfo, channel, guildName, messageRows, messageCoun
       <div class="subtitle"><b>${escapeHtml(channel.name)}</b> — ${escapeHtml(guildName)}</div>
       <div class="meta-grid">
         <div class="meta-item"><span class="k">Type</span><span class="v">${escapeHtml(ticketInfo.type)}</span></div>
-        <div class="meta-item"><span class="k">Created by</span><span class="v">&lt;@${ticketInfo.creator_id}&gt;</span></div>
+        <div class="meta-item"><span class="k">Created by</span><span class="v">${createdBy}</span></div>
         <div class="meta-item"><span class="k">Created on</span><span class="v">${openedAt}</span></div>
         <div class="meta-item"><span class="k">Closed on</span><span class="v">${closedAt}</span></div>
-        ${ticketInfo.claimed_by ? `<div class="meta-item"><span class="k">Claimed by</span><span class="v">&lt;@${ticketInfo.claimed_by}&gt;</span></div>` : ''}
+        ${closedBy ? `<div class="meta-item"><span class="k">Closed by</span><span class="v">${closedBy}</span></div>` : ''}
+        ${claimedBy ? `<div class="meta-item"><span class="k">Claimed by</span><span class="v">${claimedBy}</span></div>` : ''}
         <div class="meta-item"><span class="k">Priority</span><span class="v">${escapeHtml(ticketInfo.priority)}</span></div>
         <div class="meta-item"><span class="k">Messages</span><span class="v">${messageCount}</span></div>
+        ${closeReason ? `<div class="meta-item meta-item--wide"><span class="k">Close reason</span><span class="v">${closeReason}</span></div>` : ''}
       </div>
     </header>
 
@@ -543,14 +598,28 @@ async function generateTranscript(channel, ticketInfo, guildName, design = 'mode
   const messages  = await fetchAllMessages(channel);
   const avatarMap = await buildAvatarMap(messages);
   const emojiMap  = await buildEmojiMap(messages);
+  const nameMap   = await buildNameMap(channel, messages,
+    [ticketInfo.creator_id, ticketInfo.claimed_by, ticketInfo.closed_by]);
 
-  const messageRows = buildMessageRows(messages, avatarMap, emojiMap);
+  const messageRows = buildMessageRows(messages, avatarMap, emojiMap, nameMap);
   const openedAt    = formatDate(new Date(ticketInfo.created_at));
   const closedAt    = ticketInfo.closed_at ? formatDate(new Date(ticketInfo.closed_at)) : '—';
 
+  // Resolve user ids to names for the header; fall back to the raw mention if
+  // the name can't be resolved. Closed-by / reason only when present.
+  const nameOf = (id) => {
+    if (id == null || id === '') return '—';
+    const n = nameMap.get(String(id));
+    return n ? escapeHtml(n) : `&lt;@${escapeHtml(String(id))}&gt;`;
+  };
+  const reasonRaw   = (ticketInfo.close_reason ?? '').toString().trim();
   const ctx = {
     ticketInfo, channel, guildName,
     messageRows, messageCount: messages.length, openedAt, closedAt,
+    createdBy:   nameOf(ticketInfo.creator_id),
+    claimedBy:   ticketInfo.claimed_by ? nameOf(ticketInfo.claimed_by) : null,
+    closedBy:    ticketInfo.closed_by  ? nameOf(ticketInfo.closed_by)  : null,
+    closeReason: reasonRaw ? escapeHtml(reasonRaw) : null,
   };
 
   return design === 'classic' ? renderClassic(ctx) : renderModern(ctx);

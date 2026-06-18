@@ -270,9 +270,11 @@ async function performClose(client, channel, ticket, closer, reason) {
 
   if (cfg.createTranscript) {
     // The transcript is generated before db.closeTicket() runs, so the DB row
-    // still has closed_at = null. Stamp the close time now so the transcript's
-    // "Closed on" reflects the actual moment of closing.
-    ticket.closed_at = ticket.closed_at ?? Date.now();
+    // still has closed_at / closed_by / close_reason unset. Stamp them now so
+    // the transcript header shows the actual close time, closer and reason.
+    ticket.closed_at    = ticket.closed_at    ?? Date.now();
+    ticket.closed_by    = ticket.closed_by    ?? closer?.id ?? null;
+    ticket.close_reason = ticket.close_reason ?? (reason || null);
     try {
       transcriptHtml = await generateTranscript(channel, ticket, channel.guild.name, client.config.transcriptDesign);
     } catch (err) {
