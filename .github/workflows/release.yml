@@ -110,13 +110,15 @@ jobs:
             echo "::warning::package.json nicht gefunden — Versionsabgleich übersprungen."
           fi
 
-      - name: Modified files & Commits ermitteln
+      - name: Release-Notes erzeugen
         run: |
           set -euo pipefail
           CURR_TAG="${{ steps.tag.outputs.tag }}"
+          VERSION="${CURR_TAG#v}"
           PREV_TAG=$(git describe --tags --abbrev=0 "${CURR_TAG}^" 2>/dev/null || echo "")
           REPO="${GITHUB_REPOSITORY}"
 
+          # ── Vergleichs-Header ──────────────────────────────────────────────
           if [ -z "$PREV_TAG" ]; then
             RANGE="$CURR_TAG"
             printf '> ⚠️ First Release – no comparison with previous tag possible.\n\n' > release_body.md
@@ -126,25 +128,58 @@ jobs:
               "$PREV_TAG" "$CURR_TAG" "$REPO" "$PREV_TAG" "$CURR_TAG" > release_body.md
           fi
 
-          # Commits — nur die Betreffzeile (%s) je Commit (keine Bodies, bewusst kompakt).
-          # --pretty=format:"...%n" sorgt dafür, dass JEDE Zeile (auch die letzte) mit
-          # einem Newline endet; die frühere `while read`-Schleife verschluckte sonst
-          # den neuesten Commit (read liefert non-zero bei fehlendem abschließenden
-          # Newline → Schleifenkörper wurde übersprungen).
-          echo "## 📝 Commits" >> release_body.md
+          # ── Kuratierter Changelog ──────────────────────────────────────────
+          # Hebt den zur Version passenden Abschnitt aus CHANGELOG.md nach oben,
+          # damit man auf den ersten Blick sieht, was geändert wurde. Erkennt
+          # sowohl "## [2.2.0] - DATUM" als auch "## 2.2.0"; liest bis zum
+          # nächsten "## "-Header (### Added/Changed/… bleiben erhalten).
+          # Bewusst string- statt regex-basiert: kein Dotted-Version-Escaping,
+          # und ein Prefix wie "2.2" matcht NICHT fälschlich "2.2.0".
+          CHANGELOG=""
+          if [ -f CHANGELOG.md ]; then
+            CHANGELOG=$(awk -v ver="$VERSION" '
+              /^##[ \t]+/ {
+                insec=0
+                h=$0
+                sub(/^##[ \t]+/, "", h)        # "## " entfernen
+                sub(/^\[/, "", h)              # optionale "[" entfernen
+                if (substr(h, 1, length(ver)) == ver) {
+                  c=substr(h, length(ver)+1, 1)
+                  if (c=="" || c=="]" || c==" " || c=="\t") { insec=1 }
+                }
+                next
+              }
+              insec { print }
+            ' CHANGELOG.md | sed '/./,$!d')   # führende Leerzeilen entfernen
+          fi
+
+          if [ -n "$CHANGELOG" ]; then
+            printf '## 📋 Changelog\n\n%s\n\n' "$CHANGELOG" >> release_body.md
+          else
+            printf '## 📋 Changelog\n\n_No CHANGELOG.md entry found for `%s` — see the commits below._\n\n' "$VERSION" >> release_body.md
+            echo "::warning::Kein CHANGELOG.md-Abschnitt für Version '$VERSION' gefunden. Wurde der Changelog vor dem Tag gepflegt?"
+          fi
+
+          # ── Commits (eingeklappt) ──────────────────────────────────────────
+          # nur die Betreffzeile (%s) je Commit (keine Bodies, bewusst kompakt).
+          # --pretty=format:"...%n" sorgt dafür, dass JEDE Zeile (auch die letzte)
+          # mit einem Newline endet.
+          printf '<details>\n<summary>📝 Commits</summary>\n\n' >> release_body.md
           git log "$RANGE" \
             --pretty=format:"- [\`%h\`](https://github.com/$REPO/commit/%H) %s _(%an)_%n" \
             >> release_body.md
+          printf '\n</details>\n\n' >> release_body.md
 
-          # Modified files
-          printf '\n\n## 📂 Modified files\n' >> release_body.md
+          # ── Geänderte Dateien (eingeklappt) ────────────────────────────────
+          printf '<details>\n<summary>📂 Modified files</summary>\n\n' >> release_body.md
           echo '```' >> release_body.md
           git diff --name-status "$RANGE" \
             | sed 's/^A\t/✅  NEW      /;s/^M\t/✏️  CHANGED /;s/^D\t/🗑️  DELETED /' \
             >> release_body.md
           echo '```' >> release_body.md
+          printf '\n</details>\n' >> release_body.md
 
-          # Statistics
+          # ── Statistik ──────────────────────────────────────────────────────
           STATS=$(git diff --shortstat "$RANGE" 2>/dev/null || echo "First Release")
           printf '\n---\n📊 **%s**\n' "$STATS" >> release_body.md
 
