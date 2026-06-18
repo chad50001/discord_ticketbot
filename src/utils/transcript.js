@@ -19,11 +19,21 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-function parseMarkdown(text) {
+// Custom Discord emoji syntax (in the raw, pre-escaped text): <:name:id> / <a:name:id>
+const EMOJI_RE = /<(a)?:(\w+):(\d+)>/g;
+
+function parseMarkdown(text, emojiMap) {
   if (!text) return '';
   let html = escapeHtml(text);
 
-  html = html.replace(/```(?:\w+\n)?([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  // Fenced code blocks — capture optional language label, strip the leading
+  // newline (otherwise the block renders with an empty first line) and trim
+  // trailing blank lines. The language is shown as a small tag (no colouring).
+  html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_full, lang, code) => {
+    const body  = code.replace(/^\n+/, '').replace(/\n+$/, '');
+    const label = lang ? `<span class="code-lang">${escapeHtml(lang)}</span>` : '';
+    return `<pre${lang ? ' class="has-lang"' : ''}>${label}<code>${body}</code></pre>`;
+  });
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
@@ -32,6 +42,14 @@ function parseMarkdown(text) {
   html = html.replace(/~~(.+?)~~/g, '<s>$1</s>');
   html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
   html = html.replace(/\|\|(.+?)\|\|/g, '<span class="spoiler">$1</span>');
+  // Custom emojis (matched in escaped form, e.g. "&lt;:name:123&gt;").
+  // Embedded as Base64 data URIs (offline-safe); falls back to ":name:" text.
+  html = html.replace(/&lt;(a)?:(\w+):(\d+)&gt;/g, (_full, _animated, name, id) => {
+    const uri = emojiMap && emojiMap.get(id);
+    return uri
+      ? `<img class="emoji" src="${uri}" alt=":${name}:" title=":${name}:">`
+      : `:${name}:`;
+  });
   html = html.replace(/&lt;@!?(\d+)&gt;/g, '<span class="mention">@$1</span>');
   html = html.replace(/&lt;#(\d+)&gt;/g, '<span class="mention">#$1</span>');
   html = html.replace(/&lt;@&amp;(\d+)&gt;/g, '<span class="mention">@role</span>');
@@ -132,6 +150,57 @@ async function buildAvatarMap(messages) {
   return avatarMap;
 }
 
+/**
+ * Build a map of { emojiId → base64DataUri } for every unique custom emoji
+ * used in the messages (content + embed title/description). Custom emojis are
+ * embedded just like avatars so the transcript stays fully offline-safe.
+ * Failed fetches are dropped from the map (parseMarkdown then falls back to
+ * ":name:" text).
+ *
+ * @param {import('discord.js').Message[]} messages
+ * @returns {Promise<Map<string, string>>}
+ */
+async function buildEmojiMap(messages) {
+  // Collect unique emoji ids → CDN url
+  const urls = new Map();
+  const scan = (text) => {
+    if (!text) return;
+    EMOJI_RE.lastIndex = 0;
+    let m;
+    while ((m = EMOJI_RE.exec(text)) !== null) {
+      const [, animated, , id] = m;
+      if (!urls.has(id)) {
+        const ext = animated ? 'gif' : 'png';
+        urls.set(id, `https://cdn.discordapp.com/emojis/${id}.${ext}?size=48`);
+      }
+    }
+  };
+
+  for (const msg of messages) {
+    scan(msg.content);
+    for (const e of msg.embeds) { scan(e.title); scan(e.description); }
+  }
+
+  if (urls.size === 0) return new Map();
+
+  const entries = [...urls.entries()];
+  const results = await Promise.allSettled(
+    entries.map(([, url]) => fetchAsDataUri(url))
+  );
+
+  const emojiMap = new Map();
+  entries.forEach(([id], i) => {
+    const result = results[i];
+    // fetchAsDataUri returns the SVG placeholder on failure — treat that as
+    // "no emoji" so we render the ":name:" text fallback instead of a grey box.
+    if (result.status === 'fulfilled' && result.value && !result.value.startsWith('data:image/svg')) {
+      emojiMap.set(id, result.value);
+    }
+  });
+
+  return emojiMap;
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 /**
@@ -139,16 +208,17 @@ async function buildAvatarMap(messages) {
  * only differ in surrounding chrome/CSS, the per-message DOM stays the same).
  * @param {import('discord.js').Message[]} messages
  * @param {Map<string,string>} avatarMap
+ * @param {Map<string,string>} emojiMap
  * @returns {string}
  */
-function buildMessageRows(messages, avatarMap) {
+function buildMessageRows(messages, avatarMap, emojiMap) {
   return messages.map(msg => {
     const avatarSrc = avatarMap.get(msg.author.id) ?? '';
     const isBot     = msg.author.bot ? '<span class="badge bot">BOT</span>' : '';
     const timestamp = formatDate(msg.createdAt);
 
     const content = msg.content
-      ? `<div class="msg-content">${parseMarkdown(msg.content)}</div>`
+      ? `<div class="msg-content">${parseMarkdown(msg.content, emojiMap)}</div>`
       : '';
 
     const attachments = msg.attachments.size > 0
@@ -162,7 +232,7 @@ function buildMessageRows(messages, avatarMap) {
 
     const embeds = msg.embeds.map(e => {
       const title = e.title       ? `<div class="embed-title">${escapeHtml(e.title)}</div>`             : '';
-      const desc  = e.description ? `<div class="embed-desc">${parseMarkdown(e.description)}</div>`    : '';
+      const desc  = e.description ? `<div class="embed-desc">${parseMarkdown(e.description, emojiMap)}</div>`    : '';
       const color = e.color != null
         ? `border-left: 4px solid #${e.color.toString(16).padStart(6, '0')}`
         : '';
@@ -203,8 +273,11 @@ function renderClassic({ ticketInfo, channel, guildName, messageRows, messageCou
     }
     a { color: #00aff4; }
     code { background: #2b2d31; padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 13px; }
-    pre { background: #2b2d31; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 6px 0; }
+    pre { position: relative; background: #2b2d31; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 6px 0; }
+    pre.has-lang { padding-top: 28px; }
     pre code { background: none; padding: 0; }
+    .code-lang { position: absolute; top: 7px; right: 10px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #72767d; }
+    .emoji { width: 1.375em; height: 1.375em; vertical-align: bottom; object-fit: contain; }
     blockquote { border-left: 4px solid #4f545c; padding: 0 12px; margin: 4px 0; color: #b9bbbe; }
     .spoiler { background: #202225; color: transparent; border-radius: 3px; cursor: pointer; }
     .spoiler:hover { color: inherit; }
@@ -315,8 +388,11 @@ function renderModern({ ticketInfo, channel, guildName, messageRows, messageCoun
     a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
     a:hover { border-bottom-color: rgba(46,230,118,.5); }
     code { background: var(--bg-2); padding: 1.5px 6px; border-radius: 5px; font-family: var(--mono); font-size: .85em; border: 1px solid var(--line); }
-    pre { background: var(--bg-2); padding: 14px 16px; border-radius: 10px; overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); }
+    pre { position: relative; background: var(--bg-2); padding: 14px 16px; border-radius: 10px; overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); }
+    pre.has-lang { padding-top: 32px; }
     pre code { background: none; padding: 0; border: 0; }
+    .code-lang { position: absolute; top: 9px; right: 12px; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); background: var(--bg); padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); }
+    .emoji { width: 1.375em; height: 1.375em; vertical-align: bottom; object-fit: contain; }
     blockquote { border-left: 3px solid var(--accent); padding: 2px 14px; margin: 6px 0; color: var(--text-2); }
     strong { color: #fff; }
     .spoiler { background: #14161b; color: transparent; border-radius: 4px; cursor: pointer; padding: 0 3px; }
@@ -466,8 +542,9 @@ function renderModern({ ticketInfo, channel, guildName, messageRows, messageCoun
 async function generateTranscript(channel, ticketInfo, guildName, design = 'modern') {
   const messages  = await fetchAllMessages(channel);
   const avatarMap = await buildAvatarMap(messages);
+  const emojiMap  = await buildEmojiMap(messages);
 
-  const messageRows = buildMessageRows(messages, avatarMap);
+  const messageRows = buildMessageRows(messages, avatarMap, emojiMap);
   const openedAt    = formatDate(new Date(ticketInfo.created_at));
   const closedAt    = ticketInfo.closed_at ? formatDate(new Date(ticketInfo.closed_at)) : '—';
 

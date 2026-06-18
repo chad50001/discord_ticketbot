@@ -269,6 +269,10 @@ async function performClose(client, channel, ticket, closer, reason) {
   let transcriptUploadError  = null;
 
   if (cfg.createTranscript) {
+    // The transcript is generated before db.closeTicket() runs, so the DB row
+    // still has closed_at = null. Stamp the close time now so the transcript's
+    // "Closed on" reflects the actual moment of closing.
+    ticket.closed_at = ticket.closed_at ?? Date.now();
     try {
       transcriptHtml = await generateTranscript(channel, ticket, channel.guild.name, client.config.transcriptDesign);
     } catch (err) {
