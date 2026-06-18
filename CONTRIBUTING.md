@@ -14,17 +14,23 @@ By participating in this project you agree to abide by our
 
 ## Table of Contents
 
-- [Ways to Contribute](#ways-to-contribute)
-- [Reporting Bugs](#reporting-bugs)
-- [Requesting Features](#requesting-features)
-- [Reporting Security Issues](#reporting-security-issues)
-- [Development Setup](#development-setup)
-- [Project Structure](#project-structure)
-- [Coding Conventions](#coding-conventions)
-- [Internationalization (i18n)](#internationalization-i18n)
-- [Database Changes](#database-changes)
-- [Commit & Pull Request Guidelines](#commit--pull-request-guidelines)
-- [Licensing](#licensing)
+- [Contributing to Discord Ticket Bot](#contributing-to-discord-ticket-bot)
+  - [Table of Contents](#table-of-contents)
+  - [Ways to Contribute](#ways-to-contribute)
+  - [Reporting Bugs](#reporting-bugs)
+  - [Requesting Features](#requesting-features)
+  - [Reporting Security Issues](#reporting-security-issues)
+  - [Development Setup](#development-setup)
+    - [Requirements](#requirements)
+    - [Steps](#steps)
+  - [Project Structure](#project-structure)
+  - [Coding Conventions](#coding-conventions)
+  - [Internationalization (i18n)](#internationalization-i18n)
+  - [Database Changes](#database-changes)
+  - [Commit \& Pull Request Guidelines](#commit--pull-request-guidelines)
+    - [Commits](#commits)
+    - [Pull Requests](#pull-requests)
+  - [Licensing](#licensing)
 
 ---
 
@@ -120,7 +126,7 @@ and exits. Edit `config.jsonc` to match your test server, then start again.
 
 ## Project Structure
 
-A short orientation — see [`CLAUDE.md`](CLAUDE.md) for the full, always-current map.
+A short orientation — see [`README.md`](README.md) for the full, always-current map.
 
 ```
 index.js                ← entry point (dotenv + TicketClient.start())
