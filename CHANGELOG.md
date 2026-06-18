@@ -11,7 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.2.1] - 2026-06-18
+## [2.2.2] - 2026-06-18
+
+### Fixed
+- **Transcript images no longer break over time.** Message image/file
+  attachments were embedded using the raw Discord CDN URL, which is signed and
+  expires ~24h after the transcript is generated — so every attachment image
+  eventually turned into a broken-image icon. Attachments are now linked from the
+  permanent copy stored on the MSK server via a relative path that resolves under
+  both custom domains and the main site; the Discord URL is kept only as a
+  fallback for files that weren't uploaded. (Avatars and emojis were never
+  affected — they are embedded as Base64.)
+- Unsupported attachment file types are now skipped instead of failing the whole
+  transcript upload over a single file.
 
 ### Fixed
 - Transcript **"Closed on"** now shows the actual close time. It was empty
