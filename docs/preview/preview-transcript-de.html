@@ -1,89 +1,189 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ticket #41 – ticket-musiker15</title>
   <style>
+    /* ─── MSK Scripts — Ticket Transcript (modern) ──────────────────────── */
+    :root {
+      --bg:          #1c1f26;
+      --bg-2:        #21252e;
+      --panel:       #272c37;
+      --panel-2:     #2e333f;
+      --line:        rgba(255,255,255,.10);
+      --line-strong: rgba(255,255,255,.16);
+      --accent:      #2ee676;
+      --accent-dim:  rgba(46,230,118,.16);
+      --text:        #f3f4f7;
+      --text-2:      #c7cad3;
+      --muted:       #8b909c;
+      --radius:      14px;
+      --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", "Segoe UI Mono", Consolas, monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
     body {
-      background: #1e1f22; color: #dcddde;
-      font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      font-size: 14px; line-height: 1.5;
+      background:
+        radial-gradient(1100px 460px at 50% -240px, rgba(46,230,118,.14), transparent 70%),
+        var(--bg);
+      background-attachment: fixed;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding: 0 20px 80px;
     }
-    a { color: #00aff4; }
-    code { background: #2b2d31; padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 13px; }
-    pre { position: relative; background: #2b2d31; padding: 32px 12px 12px; border-radius: 6px; overflow-x: auto; margin: 6px 0; }
-    pre code { background: none; padding: 0; }
-    .code-lang { position: absolute; top: 8px; left: 12px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #72767d; }
-    .copy-btn { position: absolute; top: 6px; right: 8px; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 22px; padding: 0; background: #1e1f22; color: #b9bbbe; border: 1px solid #4f545c; border-radius: 5px; cursor: pointer; }
-    .copy-btn:hover { color: #fff; border-color: #72767d; }
-    .copy-btn.copied { color: #57f287; border-color: #57f287; }
+    .wrap { max-width: 880px; margin: 0 auto; }
+
+    a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+    a:hover { border-bottom-color: rgba(46,230,118,.5); }
+    code { background: var(--bg-2); padding: 1.5px 6px; border-radius: 5px; font-family: var(--mono); font-size: .85em; border: 1px solid var(--line); }
+    pre { position: relative; background: var(--bg-2); padding: 40px 16px 14px; border-radius: 10px; overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); }
+    pre code { background: none; padding: 0; border: 0; }
+    .code-lang { position: absolute; top: 10px; left: 14px; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .copy-btn { position: absolute; top: 8px; right: 10px; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 24px; padding: 0; background: var(--panel-2); color: var(--text-2); border: 1px solid var(--line); border-radius: 7px; cursor: pointer; transition: color .12s, border-color .12s; }
+    .copy-btn:hover { color: var(--text); border-color: var(--line-strong); }
+    .copy-btn.copied { color: var(--accent); border-color: rgba(46,230,118,.5); }
     .emoji { width: 1.375em; height: 1.375em; vertical-align: bottom; object-fit: contain; }
-    blockquote { border-left: 4px solid #4f545c; padding: 0 12px; margin: 4px 0; color: #b9bbbe; }
-    .spoiler { background: #202225; color: transparent; border-radius: 3px; cursor: pointer; }
-    .spoiler:hover { color: inherit; }
+    blockquote { border-left: 3px solid var(--accent); padding: 2px 14px; margin: 6px 0; color: var(--text-2); }
+    strong { color: #fff; }
+    .spoiler { background: #14161b; color: transparent; border-radius: 4px; cursor: pointer; padding: 0 3px; }
+    .spoiler:hover { color: inherit; background: var(--bg-2); }
+    .mention { background: var(--accent-dim); color: var(--accent); border-radius: 5px; padding: 0 5px; font-weight: 500; }
+
+    /* ─── Header card ─────────────────────────────────────────────────── */
     .header {
-      background: #2b2d31; padding: 20px 32px;
-      border-bottom: 2px solid #1e1f22;
-      display: flex; justify-content: space-between; align-items: flex-start;
-      flex-wrap: wrap; gap: 12px;
+      position: relative; overflow: hidden;
+      background: linear-gradient(180deg, var(--panel) 0%, var(--bg-2) 100%);
+      border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 30px 32px 26px; margin: 40px 0 14px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.32);
     }
-    .header h1 { font-size: 20px; color: #fff; }
-    .header h1 span { color: #5865f2; }
-    .meta-grid { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
-    .meta-item { font-size: 12px; color: #b9bbbe; }
-    .meta-item strong { color: #dcddde; display: block; }
-    .badge { font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
-    .badge.bot { background: #5865f2; color: #fff; }
-    .messages { padding: 16px 32px; max-width: 900px; margin: 0 auto; }
+    .header::before {
+      content: ""; position: absolute; inset: 0 auto 0 0; width: 3px;
+      background: linear-gradient(180deg, var(--accent), transparent);
+    }
+    .eyebrow {
+      font-family: var(--mono); font-size: 11px; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .header h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; color: #fff; line-height: 1.1; }
+    .header h1 span { color: var(--accent); font-family: var(--mono); font-weight: 700; }
+    .subtitle { color: var(--text-2); margin-top: 6px; font-size: 14px; }
+    .subtitle b { color: var(--text); font-weight: 600; }
+
+    /* Flex chips so the last row stretches to fill — no empty grid cells. */
+    .meta-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .meta-item {
+      flex: 1 1 150px; min-width: 140px;
+      background: var(--panel-2); border: 1px solid var(--line);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .meta-item .k {
+      font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px;
+    }
+    .meta-item .v { color: var(--text); font-size: 14px; font-weight: 500; word-break: break-word; }
+    .meta-item--wide { flex-basis: 100%; }
+
+    .badge {
+      font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .08em;
+      padding: 2px 6px; border-radius: 5px; margin-left: 6px; vertical-align: middle; text-transform: uppercase;
+    }
+    .badge.bot { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(46,230,118,.35); }
+
+    /* ─── Messages ────────────────────────────────────────────────────── */
+    .section-label {
+      font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--muted); padding: 26px 6px 12px; display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+    .messages { display: flex; flex-direction: column; }
     .message {
-      display: flex; gap: 14px; padding: 8px 4px;
-      border-radius: 4px; transition: background .1s;
+      display: flex; gap: 16px; padding: 11px 14px;
+      border-radius: 12px; transition: background .12s ease;
     }
-    .message:hover { background: #2e3035; }
-    .avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; background: #36393f; }
+    .message:hover { background: var(--panel); }
+    .avatar {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+      background: var(--panel-2); border: 1px solid var(--line-strong);
+    }
     .message-body { flex: 1; min-width: 0; }
-    .message-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
-    .username { font-weight: 600; color: #fff; }
-    .timestamp { font-size: 11px; color: #72767d; }
-    .msg-content { word-break: break-word; }
-    .attachment-img { max-width: 400px; max-height: 300px; border-radius: 6px; margin-top: 6px; display: block; }
-    .attachment-file { display: inline-block; background: #2b2d31; padding: 6px 12px; border-radius: 4px; margin-top: 6px; font-size: 13px; }
-    .embed { background: #2b2d31; border-left: 4px solid #4f545c; border-radius: 0 4px 4px 0; padding: 10px 14px; margin-top: 6px; max-width: 520px; }
+    .message-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+    .username { font-weight: 600; color: #fff; font-size: 15px; }
+    .timestamp { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .02em; }
+    .msg-content { word-break: break-word; color: var(--text); }
+
+    .attachment-img {
+      max-width: 420px; max-height: 320px; border-radius: 10px; margin-top: 8px;
+      display: block; border: 1px solid var(--line);
+    }
+    .attachment-file {
+      display: inline-flex; align-items: center; gap: 6px; background: var(--panel-2);
+      padding: 8px 14px; border-radius: 8px; margin-top: 8px; font-size: 13px;
+      border: 1px solid var(--line); color: var(--text-2);
+    }
+    .embed {
+      background: var(--panel-2); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0;
+      padding: 12px 16px; margin-top: 8px; max-width: 540px; border: 1px solid var(--line); border-left-width: 3px;
+    }
     .embed-title { font-weight: 600; color: #fff; margin-bottom: 4px; }
-    .embed-desc { color: #b9bbbe; font-size: 13px; }
-    .mention { background: rgba(88,101,242,.3); color: #dee0fc; border-radius: 3px; padding: 0 3px; font-weight: 500; }
-    .footer { text-align: center; padding: 20px; color: #72767d; font-size: 12px; border-top: 1px solid #2b2d31; margin-top: 20px; }
+    .embed-desc { color: var(--text-2); font-size: 14px; }
+
+    .empty { color: var(--muted); text-align: center; padding: 60px 0; font-family: var(--mono); letter-spacing: .04em; }
+
+    /* ─── Footer ──────────────────────────────────────────────────────── */
+    .footer {
+      text-align: center; padding: 34px 0 0; margin-top: 30px;
+      border-top: 1px solid var(--line); color: var(--muted); font-size: 12px;
+    }
+    .footer .brand { color: var(--text-2); font-weight: 600; }
+    .footer .brand b { color: var(--accent); }
+    .footer .gen { font-family: var(--mono); font-size: 11px; margin-top: 6px; letter-spacing: .03em; }
+
+    @media (max-width: 560px) {
+      body { padding: 0 12px 60px; font-size: 14px; }
+      .header { padding: 24px 20px; margin-top: 24px; }
+      .header h1 { font-size: 24px; }
+      .message { gap: 12px; padding: 10px 8px; }
+      .avatar { width: 36px; height: 36px; }
+    }
   </style>
 </head>
-<body data-copy="Copy" data-copied="Copied!">
-  <div class="header">
-    <div>
-      <h1>🎫 Ticket <span>#41</span></h1>
-      <div style="color:#b9bbbe;margin-top:4px;">ticket-musiker15 — MSK Scripts</div>
+<body data-copy="Kopieren" data-copied="Kopiert!">
+  <div class="wrap">
+    <header class="header">
+      <div class="eyebrow"><span class="dot"></span> Ticket-Transkript</div>
+      <h1>Ticket <span>#41</span></h1>
+      <div class="subtitle"><b>ticket-musiker15</b> — MSK Scripts</div>
       <div class="meta-grid">
-        <div class="meta-item"><strong>Type</strong>Custom Order</div>
-        <div class="meta-item"><strong>Created by</strong>Musiker15</div>
-        <div class="meta-item"><strong>Created on</strong>18/06/2026, 14:00</div>
-        <div class="meta-item"><strong>Closed on</strong>18/06/2026, 14:10</div>
-        <div class="meta-item"><strong>Closed by</strong>StaffAnna</div>
-        <div class="meta-item"><strong>Claimed by</strong>Moritz</div>
-        <div class="meta-item"><strong>Priority</strong>medium</div>
-        <div class="meta-item"><strong>Messages</strong>5</div>
-        <div class="meta-item"><strong>Close reason</strong>Issue resolved — DB host fixed.</div>
+        <div class="meta-item"><span class="k">Typ</span><span class="v">Custom Order</span></div>
+        <div class="meta-item"><span class="k">Erstellt von</span><span class="v">Musiker15</span></div>
+        <div class="meta-item"><span class="k">Erstellt am</span><span class="v">18.06.2026, 14:00</span></div>
+        <div class="meta-item"><span class="k">Geschlossen am</span><span class="v">18.06.2026, 14:10</span></div>
+        <div class="meta-item"><span class="k">Geschlossen von</span><span class="v">StaffAnna</span></div>
+        <div class="meta-item"><span class="k">Beansprucht von</span><span class="v">Moritz</span></div>
+        <div class="meta-item"><span class="k">Priorität</span><span class="v">medium</span></div>
+        <div class="meta-item"><span class="k">Nachrichten</span><span class="v">5</span></div>
+        <div class="meta-item meta-item--wide"><span class="k">Schließgrund</span><span class="v">Issue resolved — DB host fixed.</span></div>
       </div>
-    </div>
-  </div>
-  <div class="messages">
-    
+    </header>
+
+    <div class="section-label">Verlauf</div>
+    <main class="messages">
+      
       <div class="message">
         <img class="avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='20' fill='%2336393f'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-size='18' fill='%2372767d'>?</text></svg>" alt="">
         <div class="message-body">
           <div class="message-header">
             <span class="username">Musiker15</span>
             
-            <time class="timestamp">18/06/2026, 14:08</time>
+            <time class="timestamp">18.06.2026, 14:08</time>
           </div>
           <div class="msg-content">Perfect, it works now. Thanks <span class="mention">@Moritz</span>! 🎉</div>
         </div>
@@ -94,7 +194,7 @@
           <div class="message-header">
             <span class="username">Moritz</span>
             
-            <time class="timestamp">18/06/2026, 14:05</time>
+            <time class="timestamp">18.06.2026, 14:05</time>
           </div>
           <div class="msg-content">And one <strong>with</strong> a language label:<br><pre><span class="code-lang">lua</span><button class="copy-btn" type="button"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><code>-- Code Block mit lua highlighting<br>local test = function()<br>    return true<br>end</code></pre></div>
         </div>
@@ -105,7 +205,7 @@
           <div class="message-header">
             <span class="username">Musiker15</span>
             
-            <time class="timestamp">18/06/2026, 14:02</time>
+            <time class="timestamp">18.06.2026, 14:02</time>
           </div>
           <div class="msg-content"><blockquote>A short quote</blockquote><br>Code block <strong>without</strong> language:<br><pre><button class="copy-btn" type="button"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><code>code block blabla</code></pre></div>
         </div>
@@ -116,7 +216,7 @@
           <div class="message-header">
             <span class="username">Musiker15</span>
             
-            <time class="timestamp">18/06/2026, 14:01</time>
+            <time class="timestamp">18.06.2026, 14:01</time>
           </div>
           <div class="msg-content">Hey, I need help with <strong>bold</strong>, <em>italic</em>, <s>strike</s> and a custom emoji <img class="emoji" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAP7ElEQVRoge1YeZAc1Xn/vX6vu+femdnZHe1qD2lvnSsQOrgEljnFERTAQrYUp3CK2GWMcZKyTUi5Elc5OEWcSuEiKTt24lAmFjYpHFAgEiCMQQSQENLqRlrt6th7dufYmem7X+q92V2txCEZV+Uvfbu9Pb3T3e87ft/3/b4HXJJLckkuySW5JJfkknxqIX/6lS/jzjvvlBeu72Pf/n3oau+C7wPPvvSvcOYMw+cUAL+ItwEq0WHmXRRyJsolB57ng4hnfQ4oHGEtiqFTY1i4qhk0asPnPgAFIAo0Coz35VHMeYjWBqUOlFKoGgUNAJGIhsFDFgJmPQJRH8uu6ACLx+NoaGyYMoDjzXd34v2DPbisexnsZBbRVBj8Y3TnhAudwXwK33ExdoajUDYQq46ipjEKuB6g2CBcmE9AdAVMZajpCJGx0TxJaDG/eo6OfM7EZNYik6bHQ6kYwmkVnuGhZ/tx0rW2kWsBBt/lGB0oIpIMY7T/NBakOlFblwI7XynGVBw5ehiHPjiIyGL6scoLlSgBFF9HdtjClZ23YO2d1yNWFUEpZ8I0TCiUQNVVaeTOd3fSslUmWlBhbtnzo0uDXn7MJr7r8+vWr0VVPMTHJgbx8F99LTF0JHtHMKbdEq7Vzf1v9G+7b/3G5zbcvcEOBBkikRCMogXL8DCeHwUj5yCA4FDfXoQ6Cjh9soiqQEg68azHIb2pQEG5wDE5YsO1y6hpTuKy7kVYtfDqyo1zzz5z/1e/qB08fKD7VP+puxQNn43VBgJMoyjlLHMyY0yCk592tnQ929JwlfuTf/9R+1h/4cfddzRfmZoX04kPjPTmN/38qZ9tNcbMh+7ZdM+Z5QtWz7y798RxMOFh23ZAmYInfvYDRLoKUDQCQl1AYv+sBYRzUK6Aux6I56CmJgTDUDF4IgMjb8/cly/kcfTYEe0fnvjBird7fvv9xiXVV668uoVSjaAwVkZp3EK4Vkfz8hQ827/hkce+sbGrdeHf7H57z98tu2ve9UbewvE3hpDuiKOuM6GmW+Pr39q2bfUrf/zypme2/PK1lStXSly0trSBUUWHrobx6s4dyIf7EGIMjqEioGng/lSCyQSuYKmQ8WBOemBBHx61QQIE1yxZhcu7VuD5l54jh48cxmS+2Pbctl/+WaozuPHKjZ1Vjutg8PAE4AOR6gBqmmKgjMI0LRSHbQSi2p1v7di1Jt0RCxQzBoJVQXR+JgWJXxFxlaB73by63reHn/n85o0Pvrp9xzPNzc0VyCsKASEKXtv/30i0UTg+gcsNRBI6fBFDGYWzENJjPrLDLhTTB+dFrF18Cx5+4BE8+eMnyOOPPx6F6n+5bXXdV7turW1kAYU4ro2TezKo70xK5SuRJODERwgBpOopPMNGecKKB2Ka/L5mXnRG+al0AyEEravmpAjG/m3T5i+WXn5529aAroN8+y8fRTydwO7i8wgEOETREz/il39kBnOoqiaNNnIWRt8FqMvCb+/ZeW/L5XUPt62s72YhMvOsqB6e4yMU06d1kcrJ6glAOFCs5XvAvhf70LSgHqn2wMzz4uS7PohC4HtcVFuc3DU+cdW829c98q1vvcMmcln0lt5HsBnwhIvlIrOs/5AQOI4rzwd29ofOHBhbl25JPLj2/svWBOMq8bk3s7jwGtMItIAqr8t5G3bJkUoR6SBU/hBAJPbSm5txsicDNuTJaBXHTXiuL41UqIByxamRGj35wo5f/aQ+3XQDZUEVkc4yaEDcMLsmfbQ4pof+PSPq3v/pvVGl7MkVt3U+3Lg01cqChPBpt06bSohcXLw1e6YEShUZXZHwxXELtuHCEs3O5VJB8VnVFQz35kEpQSCiyYQvDfqwMgSDH2SQOZWH63ggzK9tSM57nxW9IUSq58H1ZtXL80QsNPxBlniur/Vs77uxtq3qkctvbV8dSwcVz3fhi0r1MRHzRQcWXvYotEwNli9dgQW3dSJVnQJVVFiWhaef/jm2PPWf6L6hVeJ/1JsE8wJYoF+NP3zoXrQ1d0BRFDy/9b/wwAMPYPPmzahL1+PJH/7zKhZNqXC9cz13vvTvHtaGjuWv10Ls62s2LbkxNiekiiQUyn+STEMpe8LC5jVfw+fu2YBcIYvsxARcz4Xv+QjQKLJDJZTzFm67bCNG8gPoLxbw4PpH0dHWiUMnevDKGy9hZGQEpwZOIjE3AqL5uGXdzdiy5ZkI84gNTois8bPl6JsDyA+WlcK4sTwUY9/rvqn1mmhaDwrFBc4vhhpNS02qFnpMwUPf+RMUyCgsblQ6uarI5CynTSy/oxX7+t/BXWs3QPPC4MzDP77wHZSVLCzbBK/iCFQB13UuQqZ8BE9u/2uMFYYYWXFXG9qvFa2Tz8Cl770RQhntHjg4/s2uNQ331M6Pqy53Ll7jKfxPixqgsnQKWuHarkzM84UyRX4/cGQcx38zhqu+0AmiexLvZ0MKWIaLsRN5HH9rpHDf7Zvu+hAXOrFrJFkYMb7RtLTmoWv/aFHMJx5mlBc6XcDzwqNc4L5C32S59B1hEIdVPtutzxfP9VHOl3Bg+yl0XV8PyzVQHrfk/32Hw8jZmMyYGD9VxHj/JKjKDKKwMTq3K4nq5hj6do/AKrid5YL9zMIbGjaGq/WAL1rn7yBC+VN7MojXhSrNR1FwZv8Eko1h2YWni5y4T3bFWVIYLaNnWz8i1UGc3jeB6qYKCxbOYAGKWDooXyAMqOuqwpJ1DeGDu98P07r2BAojZWXgwMS1sbrgtvkrajqm+MPvLAI2h7YPIFSlIZjQpMKjx/Owyy6iUoFzI8gFDzMc9L4zjDP7x7F03TzUL0zIWWDXlhOwSi70EEM5a6Nv15isaEvXNSLdUQVVZ6RsOnWkcXE1URR2U/MVqafmdMVrK+GfgsLsdn6RUsyY6HnxNOYuSqBhaVLi/8Q7o7AmXSQawgjHdVBNQWnCwsChcTiWi7quBOoXJmc5AihN2Hj3F71wbQ8d19WhYUkSTFdkN56WofdGs6SuI9GSbk/s6LhuTvN0HxKtf7y/gOp5MVkphPgut1zbU32Xc8oUIpRQGJF1lGlUdW1vBhOu7WP0WB5jJyalA4IxFQoT1MPG+OkiYrVBpOZFkGgKI5wMyLnho0QYefjVQVzxuZaptj0dOsA1XfT9unc7SbfGv3/tlxZ8kyiVsuEYLiZOFZFsikrvmVnTtA9mUD1WDCT1SoIaLofhEdg6xaTpwdKYQ+fH1XBjDFqEVYwWNEJXpDPssieZLdVopSIRwHVEduOCzV8YN+11zuG5pstze0dd57hRbOlccD+L1YaupqpC5E28AoFkc1QqMbFnFIsLxUB3NUMwFZ7tgLOfOeB4UDOlSfTuzqPP4MgFVaAqgEB1EMEqDYGwCj2oVkbQqcYsCxq5MCQ9x+e24br2SNmL5k3a6tisVfNZ31wVO8+YBtPDWo0gh8IXojPKwVynyB7L4dpyCe3pChGzXODoqC29Fw9SzIkyaEw4kUOlQF2MoS4GXAPAdDhypoGh/iL6si6Gyx4MhcATEYjqYDEdJEQFmZcR0XRVJquMjMsl3zKLlqWatq4XLLQonC6pUtSYRqBIUqsgO4Li6lUrx5lZsLOyEQv4WBUmKRN4/yjaukLn+DuiE5iuj4GchZ4BA0xSYYJkSEFUVxBQFYQ0goiuIB2hqItRrJirV+iyD1geh+n4MB0TtsFhOL48XI/D9jjE60KqAo0pCOuKngxRhOso4ZwT6VthoA/sG+GF0JLbv/fdx/52PyuPFn7hOv4qRSFE4FuwQmGEV7ShkOCM+sLL86vVc/qZeKlQoGgJpTgKpoexIofpctguh2DA8QBFQhgoPM0IgkwYC1A5SEGuJYvd1ELnFz1ZCQmRxp8ct7E3o56Yc9lN373uqmu2hMNhlzmEbs30FR9Nt0drqUqhhbis52ZDDIMFD/VVtPJWmeNTyTRlBpX7PIo8pkXCesrjOZMjU3RxJu9hfMBC2fZge4DIX2FcVCOoCjFpXCKoyMhplIASgrLjYzDvyufHS66MUCpMYQbr3xvLjP/H6ztedTZsuA9MDSmnB49OHKhuDK8VeBSHsLp+TQO27hlF4owpJh2UxKoa5USjhArc+z4Puh7SAUJqNIL4FHSYUumCAg6JIEEiqKKjVoUoctM+8KeiZ7o+DHsKVq6PzKQDw6kkZIApqA4rmF8dQFSnCKiVuWJbf351/bKWYGtbnWOaZTA7h4Wp+XTVyLE85i5JTvEYyCqUWpmG51R4jahBClN8RRFDXSUQLgc/aXs4kjE4MxxKsga00TIJWi6qNAW1UYo5MVXmx3RUpqZVMMIRkpASVx+O4HSopyHleJz3DLnFXLD1R8tqq4uC/AmHMMYj96abkoGq2iA/0zOBxmVJIubY2SPhLKHnE05RsdS5kakFE9w2XXei7NpDOct/Z7hcRsYOsUnD0qmScGxPEZOWUDymVCCR1BWEKYFYhkEkMoHOKoeIpu1yvy+L8vuFxGuL1tz6wxva4q+Hw6o/PWuwbPShPx8aPEmrao+iusHFwP4s6hbE8amEgGhBxsQhZtrq1iphmfD7FBGqbDJxzsWWqJ0hUDNic8/nimO6dnagWM70T9qjh8berYoE3yQWJQ0tCwdjtXX7ui9vOuR7JS8UrjlnSeY1/QU7NjmJkR1b0dn2K8RTwxjoyaKmLQo9os5A6veQDxFDQohIJEHlxZiKcsHyxnoLuYEjE6/ysv70/JaO37QsbjJ8J4B0PIX8yZMw8hnokbPNdMYAsYCnRJEL3Ie9vdcj5r+IualfY+zoSQSTBmraqiQd+H1lZr4hFWqQHy4iN1zOZk+V9k4O2s8GafT19oVLTjBNtZLRpM90Ctu58BAlvSA+cE5ganUwyZcwPvl5qKXtSA28gIHDhzGn3UC8QQNTFclNKns7s7U7ez1rEKvs53lc0mBxNos2zElHdlq7zLN9PQ0vPbBx/b8cOLT7twgYnDGGYikneRP3FfjizC/SgNmreiQIP/IHGOTrQJwBDPTsgranB0HlMKpSeQSjJlTNgaLYYKoLysQ+vti7qeznC+apMCo3ocTLJYGjDDTCENApirkghseuSFp1X/nCky+fuvvyZOGx2rj7T0aplFm0eDUSVWUYVhmlfAk6YShw4YSPRgFhN36SjbKDSSXE0E88C5yUQfwS4E1C8XNQ+TgUXoRKy9C0LDSUQagNTqdnWQrfU+H7CdhOEobfCIe1wKNp+IoqLdScET9tvnSkpXbX15dfufiVpmb17J6s6MKlEorDI3BMA60L5s7M25+9/t4LGfBJhk15YBYFkLsbgnEKinB+YKchJj+cR0NJ5e5g6T18pv3lb998a83f+3KzadYtgnooyjkbArZtfloDZhvxIQRWInbe9blmf4wQIGT8r3l39/N3V9dEX7wYxYQBFzFW/P+JAhfz3Z/u2bjeWuv5JH+h+/8PAb2BXUTZKrIAAAAASUVORK5CYII=" alt=":susge:" title=":susge:"> plus inline <code>code inline</code>.</div>
         </div>
@@ -127,14 +227,17 @@
           <div class="message-header">
             <span class="username">MSK Support</span>
             <span class="badge bot">BOT</span>
-            <time class="timestamp">18/06/2026, 14:00</time>
+            <time class="timestamp">18.06.2026, 14:00</time>
           </div>
           <div class="msg-content">Hello <span class="mention">@Musiker15</span>! Thank you for opening a ticket. A team member will be with you shortly.</div><div class="embed" style="border-left: 4px solid #2ee676"><div class="embed-title">Ticket Opened</div><div class="embed-desc">Hello <span class="mention">@Musiker15</span> 👋<br><strong>Type:</strong> Custom Order<br><strong>Priority:</strong> 🟡 Medium</div></div>
         </div>
       </div>
-  </div>
-  <div class="footer">
-    Generated on 19/06/2026, 06:26 · Discord Ticket Bot
+    </main>
+
+    <footer class="footer">
+      <div class="brand">MSK <b>Scripts</b> · Discord Ticket Bot</div>
+      <div class="gen">Generiert am 19.06.2026, 06:26</div>
+    </footer>
   </div>
   <script>
 (function(){

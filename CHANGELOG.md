@@ -11,6 +11,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-06-19
+
+### Added
+- **Copy button on code blocks** in the HTML transcript — one click copies the
+  block's contents to the clipboard (Clipboard API with an `execCommand`
+  fallback; self-contained, works offline). Degrades gracefully if a strict CSP
+  blocks inline scripts (the transcript still renders).
+- **Configurable transcript language** via the new `transcriptLang` config key
+  (`"en"` or `"de"`). All transcript UI strings (header labels, section title,
+  footer, copy-button tooltip) and the date format follow it. Falls back to
+  **English** when the key is omitted or the language isn't translated.
+
+### Fixed
+- **Reopened-then-deleted tickets lost their post-reopen messages.** A transcript
+  is a snapshot taken at close, but the Delete button removed the channel without
+  regenerating it. Deleting a reopened (still-open) ticket now generates a final
+  transcript from the full message history first.
+- A ticket's transcript is now **replaced in place** instead of piling up a new
+  transcript (and public URL) per close. Re-closing or deleting the same ticket
+  keeps the **same transcript link**, always reflecting the latest state; older
+  duplicate transcripts for that ticket are cleaned up. *(Requires the matching
+  `msk-shop` upload-route update.)*
+- The **transcript link label** in the close DM and the log embed was hardcoded
+  in German and wrongly implied a download; it is now localized and consistently
+  means "open" (English "Open", German "Öffnen").
+
+## [Released]
+
 ## [2.2.2] - 2026-06-18
 
 ### Fixed

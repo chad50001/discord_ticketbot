@@ -36,7 +36,9 @@
     },
     "ticketClosedDM": {
       "title": "Dein Ticket wurde geschlossen",
-      "description": "Dein Ticket **#{count}** ({type}) wurde von {closer} geschlossen.\n**Grund:** {reason}"
+      "description": "Dein Ticket **#{count}** ({type}) wurde von {closer} geschlossen.\n**Grund:** {reason}",
+      "transcript": "Transkript",
+      "transcriptLink": "Öffnen"
     },
     "ticketReopened": {
       "title": "Ticket wieder geöffnet",
@@ -44,6 +46,7 @@
     },
     "ticketLog": {
       "title": "Ticket #{count} geschlossen",
+      "transcriptLink": "Öffnen",
       "fields": {
         "type": "Typ",
         "creator": "Erstellt von",
@@ -51,7 +54,8 @@
         "claimed": "Beansprucht von",
         "reason": "Grund",
         "duration": "Dauer",
-        "messages": "Nachrichten"
+        "messages": "Nachrichten",
+        "transcript": "Transkript"
       }
     },
     "ratingRequest": {

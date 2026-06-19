@@ -483,13 +483,14 @@ Reopening restores the creator's channel access, moves the channel back to its t
 
 ### Transcript Design
 
-The HTML transcript can be rendered in a modern, minimal MSK-branded style or the classic Discord-style layout.
+The HTML transcript can be rendered in a modern, minimal MSK-branded style or the classic Discord-style layout, and in English or German.
 
 ```jsonc
-"transcriptDesign": "modern"   // "modern" (default) or "classic"
+"transcriptDesign": "modern",  // "modern" (default) or "classic"
+"transcriptLang": "en"         // "en" or "de" — falls back to English if omitted/unsupported
 ```
 
-Both styles are fully self-contained (offline-safe): avatars and custom emojis are embedded as Base64, user mentions and the **Created by / Claimed by / Closed by** fields are shown as display names instead of raw IDs, and the header includes the closer and the close reason (the reason only when one was provided).
+Both styles are fully self-contained (offline-safe): avatars and custom emojis are embedded as Base64, user mentions and the **Created by / Claimed by / Closed by** fields are shown as display names instead of raw IDs, and the header includes the closer and the close reason (the reason only when one was provided). Code blocks have a **copy button**, and `transcriptLang` localizes all transcript labels and the date format.
 
 ### Predefined Priority per Ticket Type
 

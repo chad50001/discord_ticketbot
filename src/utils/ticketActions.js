@@ -287,7 +287,7 @@ async function performClose(client, channel, ticket, closer, reason) {
     );
 
     try {
-      transcriptHtml = await generateTranscript(channel, ticket, channel.guild.name, client.config.transcriptDesign, attachmentUrls);
+      transcriptHtml = await generateTranscript(channel, ticket, channel.guild.name, client.config.transcriptDesign, attachmentUrls, client.config.transcriptLang);
     } catch (err) {
       client.logger.error('[performClose] Transcript generation error:', err);
     }
@@ -628,6 +628,73 @@ async function collectAttachments(channel, client) {
   }
 }
 
+/**
+ * Capture a FINAL transcript right before a ticket channel is deleted.
+ *
+ * Closing generates a transcript snapshot, but the Delete button removes the
+ * channel directly. If a ticket was reopened and then deleted WITHOUT being
+ * closed again, the messages added after the reopen would never be captured.
+ * This regenerates + uploads the transcript from the full message history so
+ * the stored transcript reflects everything up to deletion. The upload route
+ * replaces the ticket's transcript in place (same public URL).
+ *
+ * Only meaningful while the ticket is still open (reopened, not re-closed) — a
+ * closed ticket already has a complete transcript. The caller gates on that.
+ *
+ * @returns {Promise<string|null>} the transcript URL, or null
+ */
+async function captureFinalTranscript(client, channel, ticket, deleter) {
+  const cfg = client.config.closeOption ?? {};
+  if (!cfg.createTranscript) return null;
+
+  // Treat the delete as the close moment (the ticket is still open here), so the
+  // transcript header shows the closer/time.
+  ticket.closed_at    = ticket.closed_at    ?? Date.now();
+  ticket.closed_by    = ticket.closed_by    ?? deleter?.id ?? null;
+  ticket.close_reason = ticket.close_reason ?? null;
+
+  let transcriptHtml = null;
+  let transcriptUrl  = null;
+  try {
+    const attachments    = await collectAttachments(channel, client);
+    const attachmentUrls = new Map(
+      attachments.map(a => [a.discordId, `attachments/${a.id}.${a.ext}`]),
+    );
+    transcriptHtml = await generateTranscript(
+      channel, ticket, channel.guild.name,
+      client.config.transcriptDesign, attachmentUrls, client.config.transcriptLang,
+    );
+    if (transcriptHtml) {
+      const result = await uploadTranscript({ ticketId: ticket.id, transcriptHtml, attachments });
+      if (result.success) {
+        transcriptUrl = result.url;
+        client.logger.info(`[Delete] Final transcript uploaded (replaced in place): ${transcriptUrl}`);
+      } else {
+        client.logger.error(`[Delete] Final transcript upload failed: ${result.error}`);
+      }
+    }
+  } catch (err) {
+    client.logger.error('[Delete] Final transcript error:', err);
+  }
+
+  // Record the close so the (about-to-be-deleted) ticket isn't left as "open".
+  db.closeTicket(channel.id, deleter?.id ?? client.user.id, ticket.close_reason, transcriptHtml);
+
+  // Post to the log channel with the (replaced) transcript link.
+  if (transcriptUrl && client.config.logs && client.config.logsChannelId) {
+    const logChannel = await channel.guild.channels.fetch(client.config.logsChannelId).catch(() => null);
+    if (logChannel) {
+      const updated  = db.getTicketByChannel(channel.id) ?? ticket;
+      const duration = (updated.closed_at ?? Date.now()) - updated.created_at;
+      await logChannel.send({
+        embeds: [ticketLogEmbed(client, { ticket: updated, closer: deleter, reason: ticket.close_reason, duration, transcriptUrl })],
+      }).catch(() => null);
+    }
+  }
+
+  return transcriptUrl;
+}
+
 function buildRatingRow(ticketId) {
   return new ActionRowBuilder().addComponents(
     [1, 2, 3, 4, 5].map(n =>
@@ -657,6 +724,7 @@ module.exports = {
   performClose,
   performReopen,
   performMove,
+  captureFinalTranscript,
   buildTicketButtons,
   refreshTicketMessage,
   updateChannelTopic,

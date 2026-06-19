@@ -10,6 +10,32 @@
 // Used whenever an avatar cannot be fetched/embedded.
 const PLACEHOLDER_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='20' fill='%2336393f'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-size='18' fill='%2372767d'>?</text></svg>`;
 
+// Inline clipboard icon for the code-block copy button (no external requests).
+const COPY_ICON = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+
+// Transcript UI strings per language. Falls back to English for any language
+// that isn't translated here (the bot's locale files can have more languages).
+const TRANSCRIPT_I18N = {
+  en: {
+    dateLocale: 'en-GB',
+    eyebrow: 'Ticket Transcript', ticket: 'Ticket', conversation: 'Conversation',
+    type: 'Type', createdBy: 'Created by', createdOn: 'Created on',
+    closedOn: 'Closed on', closedBy: 'Closed by', claimedBy: 'Claimed by',
+    priority: 'Priority', messages: 'Messages', closeReason: 'Close reason',
+    empty: 'No messages in this ticket', generatedOn: 'Generated on',
+    copy: 'Copy', copied: 'Copied!',
+  },
+  de: {
+    dateLocale: 'de-DE',
+    eyebrow: 'Ticket-Transkript', ticket: 'Ticket', conversation: 'Verlauf',
+    type: 'Typ', createdBy: 'Erstellt von', createdOn: 'Erstellt am',
+    closedOn: 'Geschlossen am', closedBy: 'Geschlossen von', claimedBy: 'Beansprucht von',
+    priority: 'Priorität', messages: 'Nachrichten', closeReason: 'Schließgrund',
+    empty: 'Keine Nachrichten in diesem Ticket', generatedOn: 'Generiert am',
+    copy: 'Kopieren', copied: 'Kopiert!',
+  },
+};
+
 function escapeHtml(str) {
   if (!str) return '';
   return str
@@ -30,9 +56,10 @@ function parseMarkdown(text, emojiMap, nameMap) {
   // newline (otherwise the block renders with an empty first line) and trim
   // trailing blank lines. The language is shown as a small tag (no colouring).
   html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_full, lang, code) => {
-    const body  = code.replace(/^\n+/, '').replace(/\n+$/, '');
-    const label = lang ? `<span class="code-lang">${escapeHtml(lang)}</span>` : '';
-    return `<pre${lang ? ' class="has-lang"' : ''}>${label}<code>${body}</code></pre>`;
+    const body   = code.replace(/^\n+/, '').replace(/\n+$/, '');
+    const label  = lang ? `<span class="code-lang">${escapeHtml(lang)}</span>` : '';
+    const copyBn = `<button class="copy-btn" type="button">${COPY_ICON}</button>`;
+    return `<pre>${label}${copyBn}<code>${body}</code></pre>`;
   });
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
@@ -63,8 +90,8 @@ function parseMarkdown(text, emojiMap, nameMap) {
   return html;
 }
 
-function formatDate(date) {
-  return new Intl.DateTimeFormat('en-GB', {
+function formatDate(date, locale = 'en-GB') {
+  return new Intl.DateTimeFormat(locale, {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   }).format(date);
@@ -266,11 +293,11 @@ async function buildNameMap(channel, messages, extraIds = []) {
  *        ids fall back to the Discord URL.
  * @returns {string}
  */
-function buildMessageRows(messages, avatarMap, emojiMap, nameMap, attachmentUrls) {
+function buildMessageRows(messages, avatarMap, emojiMap, nameMap, attachmentUrls, locale) {
   return messages.map(msg => {
     const avatarSrc = avatarMap.get(msg.author.id) ?? '';
     const isBot     = msg.author.bot ? '<span class="badge bot">BOT</span>' : '';
-    const timestamp = formatDate(msg.createdAt);
+    const timestamp = formatDate(msg.createdAt, locale);
 
     const content = msg.content
       ? `<div class="msg-content">${parseMarkdown(msg.content, emojiMap, nameMap)}</div>`
@@ -313,11 +340,36 @@ function buildMessageRows(messages, avatarMap, emojiMap, nameMap, attachmentUrls
 }
 
 /**
+ * Inline, self-contained script that wires up the code-block copy buttons.
+ * Uses the Clipboard API with an execCommand fallback, and reads the localized
+ * button labels from the <body data-copy/data-copied> attributes. No external
+ * requests; degrades gracefully (transcript still renders) if blocked by CSP.
+ */
+function copyScript() {
+  return `<script>
+(function(){
+  var C=(document.body.dataset.copy||'Copy'), K=(document.body.dataset.copied||'Copied!');
+  var CHECK='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  document.querySelectorAll('.copy-btn').forEach(function(b){ b.title=C; b.setAttribute('aria-label',C); });
+  function flash(b){ var o=b.innerHTML; b.innerHTML=CHECK; b.classList.add('copied'); b.title=K; setTimeout(function(){ b.innerHTML=o; b.classList.remove('copied'); b.title=C; },1500); }
+  function fallback(text){ try{ var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.top='-9999px'; document.body.appendChild(ta); ta.focus(); ta.select(); var ok=document.execCommand('copy'); document.body.removeChild(ta); return ok; }catch(e){ return false; } }
+  document.addEventListener('click', function(e){
+    var b=e.target.closest?e.target.closest('.copy-btn'):null; if(!b) return;
+    var pre=b.closest('pre'); var code=pre&&pre.querySelector('code'); if(!code) return;
+    var text=code.innerText;
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){flash(b);},function(){ if(fallback(text)) flash(b); }); }
+    else { if(fallback(text)) flash(b); }
+  });
+})();
+</script>`;
+}
+
+/**
  * Classic design — the original Discord-inspired dark transcript.
  */
-function renderClassic({ ticketInfo, channel, guildName, messageRows, messageCount, openedAt, closedAt, createdBy, claimedBy, closedBy, closeReason }) {
+function renderClassic({ ticketInfo, channel, guildName, t, locale, lang, messageRows, messageCount, openedAt, closedAt, createdBy, claimedBy, closedBy, closeReason }) {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${escapeHtml(lang)}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -331,10 +383,12 @@ function renderClassic({ ticketInfo, channel, guildName, messageRows, messageCou
     }
     a { color: #00aff4; }
     code { background: #2b2d31; padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 13px; }
-    pre { position: relative; background: #2b2d31; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 6px 0; }
-    pre.has-lang { padding-top: 28px; }
+    pre { position: relative; background: #2b2d31; padding: 32px 12px 12px; border-radius: 6px; overflow-x: auto; margin: 6px 0; }
     pre code { background: none; padding: 0; }
-    .code-lang { position: absolute; top: 7px; right: 10px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #72767d; }
+    .code-lang { position: absolute; top: 8px; left: 12px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #72767d; }
+    .copy-btn { position: absolute; top: 6px; right: 8px; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 22px; padding: 0; background: #1e1f22; color: #b9bbbe; border: 1px solid #4f545c; border-radius: 5px; cursor: pointer; }
+    .copy-btn:hover { color: #fff; border-color: #72767d; }
+    .copy-btn.copied { color: #57f287; border-color: #57f287; }
     .emoji { width: 1.375em; height: 1.375em; vertical-align: bottom; object-fit: contain; }
     blockquote { border-left: 4px solid #4f545c; padding: 0 12px; margin: 4px 0; color: #b9bbbe; }
     .spoiler { background: #202225; color: transparent; border-radius: 3px; cursor: pointer; }
@@ -373,30 +427,31 @@ function renderClassic({ ticketInfo, channel, guildName, messageRows, messageCou
     .footer { text-align: center; padding: 20px; color: #72767d; font-size: 12px; border-top: 1px solid #2b2d31; margin-top: 20px; }
   </style>
 </head>
-<body>
+<body data-copy="${escapeHtml(t.copy)}" data-copied="${escapeHtml(t.copied)}">
   <div class="header">
     <div>
-      <h1>🎫 Ticket <span>#${ticketInfo.id}</span></h1>
+      <h1>🎫 ${escapeHtml(t.ticket)} <span>#${ticketInfo.id}</span></h1>
       <div style="color:#b9bbbe;margin-top:4px;">${escapeHtml(channel.name)} — ${escapeHtml(guildName)}</div>
       <div class="meta-grid">
-        <div class="meta-item"><strong>Type</strong>${escapeHtml(ticketInfo.type)}</div>
-        <div class="meta-item"><strong>Created by</strong>${createdBy}</div>
-        <div class="meta-item"><strong>Created on</strong>${openedAt}</div>
-        <div class="meta-item"><strong>Closed on</strong>${closedAt}</div>
-        ${closedBy ? `<div class="meta-item"><strong>Closed by</strong>${closedBy}</div>` : ''}
-        ${claimedBy ? `<div class="meta-item"><strong>Claimed by</strong>${claimedBy}</div>` : ''}
-        <div class="meta-item"><strong>Priority</strong>${escapeHtml(ticketInfo.priority)}</div>
-        <div class="meta-item"><strong>Messages</strong>${messageCount}</div>
-        ${closeReason ? `<div class="meta-item"><strong>Close reason</strong>${closeReason}</div>` : ''}
+        <div class="meta-item"><strong>${escapeHtml(t.type)}</strong>${escapeHtml(ticketInfo.type)}</div>
+        <div class="meta-item"><strong>${escapeHtml(t.createdBy)}</strong>${createdBy}</div>
+        <div class="meta-item"><strong>${escapeHtml(t.createdOn)}</strong>${openedAt}</div>
+        <div class="meta-item"><strong>${escapeHtml(t.closedOn)}</strong>${closedAt}</div>
+        ${closedBy ? `<div class="meta-item"><strong>${escapeHtml(t.closedBy)}</strong>${closedBy}</div>` : ''}
+        ${claimedBy ? `<div class="meta-item"><strong>${escapeHtml(t.claimedBy)}</strong>${claimedBy}</div>` : ''}
+        <div class="meta-item"><strong>${escapeHtml(t.priority)}</strong>${escapeHtml(ticketInfo.priority)}</div>
+        <div class="meta-item"><strong>${escapeHtml(t.messages)}</strong>${messageCount}</div>
+        ${closeReason ? `<div class="meta-item"><strong>${escapeHtml(t.closeReason)}</strong>${closeReason}</div>` : ''}
       </div>
     </div>
   </div>
   <div class="messages">
-    ${messageRows || '<p style="color:#72767d;text-align:center;padding:40px 0;">No messages</p>'}
+    ${messageRows || `<p style="color:#72767d;text-align:center;padding:40px 0;">${escapeHtml(t.empty)}</p>`}
   </div>
   <div class="footer">
-    Generated on ${formatDate(new Date())} · Discord Ticket Bot
+    ${escapeHtml(t.generatedOn)} ${formatDate(new Date(), locale)} · Discord Ticket Bot
   </div>
+  ${copyScript()}
 </body>
 </html>`;
 }
@@ -405,9 +460,9 @@ function renderClassic({ ticketInfo, channel, guildName, messageRows, messageCou
  * Modern design — minimal MSK-branded layout. Self-contained (no external
  * requests / offline-safe), system + monospace fonts only.
  */
-function renderModern({ ticketInfo, channel, guildName, messageRows, messageCount, openedAt, closedAt, createdBy, claimedBy, closedBy, closeReason }) {
+function renderModern({ ticketInfo, channel, guildName, t, locale, lang, messageRows, messageCount, openedAt, closedAt, createdBy, claimedBy, closedBy, closeReason }) {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${escapeHtml(lang)}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -448,10 +503,12 @@ function renderModern({ ticketInfo, channel, guildName, messageRows, messageCoun
     a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
     a:hover { border-bottom-color: rgba(46,230,118,.5); }
     code { background: var(--bg-2); padding: 1.5px 6px; border-radius: 5px; font-family: var(--mono); font-size: .85em; border: 1px solid var(--line); }
-    pre { position: relative; background: var(--bg-2); padding: 14px 16px; border-radius: 10px; overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); }
-    pre.has-lang { padding-top: 32px; }
+    pre { position: relative; background: var(--bg-2); padding: 40px 16px 14px; border-radius: 10px; overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); }
     pre code { background: none; padding: 0; border: 0; }
-    .code-lang { position: absolute; top: 9px; right: 12px; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); background: var(--bg); padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); }
+    .code-lang { position: absolute; top: 10px; left: 14px; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .copy-btn { position: absolute; top: 8px; right: 10px; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 24px; padding: 0; background: var(--panel-2); color: var(--text-2); border: 1px solid var(--line); border-radius: 7px; cursor: pointer; transition: color .12s, border-color .12s; }
+    .copy-btn:hover { color: var(--text); border-color: var(--line-strong); }
+    .copy-btn.copied { color: var(--accent); border-color: rgba(46,230,118,.5); }
     .emoji { width: 1.375em; height: 1.375em; vertical-align: bottom; object-fit: contain; }
     blockquote { border-left: 3px solid var(--accent); padding: 2px 14px; margin: 6px 0; color: var(--text-2); }
     strong { color: #fff; }
@@ -561,35 +618,36 @@ function renderModern({ ticketInfo, channel, guildName, messageRows, messageCoun
     }
   </style>
 </head>
-<body>
+<body data-copy="${escapeHtml(t.copy)}" data-copied="${escapeHtml(t.copied)}">
   <div class="wrap">
     <header class="header">
-      <div class="eyebrow"><span class="dot"></span> Ticket Transcript</div>
-      <h1>Ticket <span>#${ticketInfo.id}</span></h1>
+      <div class="eyebrow"><span class="dot"></span> ${escapeHtml(t.eyebrow)}</div>
+      <h1>${escapeHtml(t.ticket)} <span>#${ticketInfo.id}</span></h1>
       <div class="subtitle"><b>${escapeHtml(channel.name)}</b> — ${escapeHtml(guildName)}</div>
       <div class="meta-grid">
-        <div class="meta-item"><span class="k">Type</span><span class="v">${escapeHtml(ticketInfo.type)}</span></div>
-        <div class="meta-item"><span class="k">Created by</span><span class="v">${createdBy}</span></div>
-        <div class="meta-item"><span class="k">Created on</span><span class="v">${openedAt}</span></div>
-        <div class="meta-item"><span class="k">Closed on</span><span class="v">${closedAt}</span></div>
-        ${closedBy ? `<div class="meta-item"><span class="k">Closed by</span><span class="v">${closedBy}</span></div>` : ''}
-        ${claimedBy ? `<div class="meta-item"><span class="k">Claimed by</span><span class="v">${claimedBy}</span></div>` : ''}
-        <div class="meta-item"><span class="k">Priority</span><span class="v">${escapeHtml(ticketInfo.priority)}</span></div>
-        <div class="meta-item"><span class="k">Messages</span><span class="v">${messageCount}</span></div>
-        ${closeReason ? `<div class="meta-item meta-item--wide"><span class="k">Close reason</span><span class="v">${closeReason}</span></div>` : ''}
+        <div class="meta-item"><span class="k">${escapeHtml(t.type)}</span><span class="v">${escapeHtml(ticketInfo.type)}</span></div>
+        <div class="meta-item"><span class="k">${escapeHtml(t.createdBy)}</span><span class="v">${createdBy}</span></div>
+        <div class="meta-item"><span class="k">${escapeHtml(t.createdOn)}</span><span class="v">${openedAt}</span></div>
+        <div class="meta-item"><span class="k">${escapeHtml(t.closedOn)}</span><span class="v">${closedAt}</span></div>
+        ${closedBy ? `<div class="meta-item"><span class="k">${escapeHtml(t.closedBy)}</span><span class="v">${closedBy}</span></div>` : ''}
+        ${claimedBy ? `<div class="meta-item"><span class="k">${escapeHtml(t.claimedBy)}</span><span class="v">${claimedBy}</span></div>` : ''}
+        <div class="meta-item"><span class="k">${escapeHtml(t.priority)}</span><span class="v">${escapeHtml(ticketInfo.priority)}</span></div>
+        <div class="meta-item"><span class="k">${escapeHtml(t.messages)}</span><span class="v">${messageCount}</span></div>
+        ${closeReason ? `<div class="meta-item meta-item--wide"><span class="k">${escapeHtml(t.closeReason)}</span><span class="v">${closeReason}</span></div>` : ''}
       </div>
     </header>
 
-    <div class="section-label">Conversation</div>
+    <div class="section-label">${escapeHtml(t.conversation)}</div>
     <main class="messages">
-      ${messageRows || '<p class="empty">No messages in this ticket</p>'}
+      ${messageRows || `<p class="empty">${escapeHtml(t.empty)}</p>`}
     </main>
 
     <footer class="footer">
       <div class="brand">MSK <b>Scripts</b> · Discord Ticket Bot</div>
-      <div class="gen">Generated on ${formatDate(new Date())}</div>
+      <div class="gen">${escapeHtml(t.generatedOn)} ${formatDate(new Date(), locale)}</div>
     </footer>
   </div>
+  ${copyScript()}
 </body>
 </html>`;
 }
@@ -602,18 +660,23 @@ function renderModern({ ticketInfo, channel, guildName, messageRows, messageCoun
  * @param {string} [design]  "modern" (default) or "classic"
  * @param {Map<string,string>} [attachmentUrls]  Discord attachment id → relative
  *        URL of the locally-stored copy. See buildMessageRows.
+ * @param {string} [lang]  Transcript UI language ("en", "de", …). Falls back to
+ *        English for any language without a built-in translation.
  * @returns {Promise<string>} Full HTML string
  */
-async function generateTranscript(channel, ticketInfo, guildName, design = 'modern', attachmentUrls = null) {
+async function generateTranscript(channel, ticketInfo, guildName, design = 'modern', attachmentUrls = null, lang = 'en') {
+  const t      = TRANSCRIPT_I18N[lang] || TRANSCRIPT_I18N.en;
+  const locale = t.dateLocale;
+
   const messages  = await fetchAllMessages(channel);
   const avatarMap = await buildAvatarMap(messages);
   const emojiMap  = await buildEmojiMap(messages);
   const nameMap   = await buildNameMap(channel, messages,
     [ticketInfo.creator_id, ticketInfo.claimed_by, ticketInfo.closed_by]);
 
-  const messageRows = buildMessageRows(messages, avatarMap, emojiMap, nameMap, attachmentUrls);
-  const openedAt    = formatDate(new Date(ticketInfo.created_at));
-  const closedAt    = ticketInfo.closed_at ? formatDate(new Date(ticketInfo.closed_at)) : '—';
+  const messageRows = buildMessageRows(messages, avatarMap, emojiMap, nameMap, attachmentUrls, locale);
+  const openedAt    = formatDate(new Date(ticketInfo.created_at), locale);
+  const closedAt    = ticketInfo.closed_at ? formatDate(new Date(ticketInfo.closed_at), locale) : '—';
 
   // Resolve user ids to names for the header; fall back to the raw mention if
   // the name can't be resolved. Closed-by / reason only when present.
@@ -624,7 +687,8 @@ async function generateTranscript(channel, ticketInfo, guildName, design = 'mode
   };
   const reasonRaw   = (ticketInfo.close_reason ?? '').toString().trim();
   const ctx = {
-    ticketInfo, channel, guildName,
+    ticketInfo, channel, guildName, t, locale,
+    lang: TRANSCRIPT_I18N[lang] ? lang : 'en',
     messageRows, messageCount: messages.length, openedAt, closedAt,
     createdBy:   nameOf(ticketInfo.creator_id),
     claimedBy:   ticketInfo.claimed_by ? nameOf(ticketInfo.claimed_by) : null,

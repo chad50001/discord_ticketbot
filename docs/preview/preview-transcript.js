@@ -3,10 +3,12 @@
 //
 //   node docs/preview/preview-transcript.js
 //
-// Writes preview-transcript.html (modern) + preview-transcript-classic.html
-// next to this file. Note: custom emojis are fetched from Discord's CDN at
-// generation time — offline they fall back to ":name:" text (in the live bot
-// they are embedded as images). Safe to delete this folder.
+// Writes preview-transcript.html (modern/en), preview-transcript-classic.html
+// (classic/en) and preview-transcript-de.html (modern/de) next to this file.
+// Note: custom emojis are fetched from Discord's CDN at generation time —
+// offline they fall back to ":name:" text (in the live bot they are embedded
+// as images). The code-block copy button needs the page served/opened so its
+// inline script can run. Safe to delete this folder.
 
 const fs   = require('fs');
 const path = require('path');
@@ -75,9 +77,11 @@ const ticketInfo = {
 };
 
 (async () => {
-  const modern  = await generateTranscript(channel, ticketInfo, 'MSK Scripts', 'modern');
-  const classic = await generateTranscript(channel, ticketInfo, 'MSK Scripts', 'classic');
+  const modern  = await generateTranscript(channel, ticketInfo, 'MSK Scripts', 'modern',  null, 'en');
+  const classic = await generateTranscript(channel, ticketInfo, 'MSK Scripts', 'classic', null, 'en');
+  const germanD = await generateTranscript(channel, ticketInfo, 'MSK Scripts', 'modern',  null, 'de');
   fs.writeFileSync(path.join(__dirname, 'preview-transcript.html'), modern);
   fs.writeFileSync(path.join(__dirname, 'preview-transcript-classic.html'), classic);
-  console.log('written docs/preview/preview-transcript.html (modern) + preview-transcript-classic.html (classic)');
+  fs.writeFileSync(path.join(__dirname, 'preview-transcript-de.html'), germanD);
+  console.log('written preview-transcript.html (modern/en) + preview-transcript-classic.html (classic/en) + preview-transcript-de.html (modern/de)');
 })();

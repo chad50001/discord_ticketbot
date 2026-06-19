@@ -40,10 +40,12 @@
     a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
     a:hover { border-bottom-color: rgba(46,230,118,.5); }
     code { background: var(--bg-2); padding: 1.5px 6px; border-radius: 5px; font-family: var(--mono); font-size: .85em; border: 1px solid var(--line); }
-    pre { position: relative; background: var(--bg-2); padding: 14px 16px; border-radius: 10px; overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); }
-    pre.has-lang { padding-top: 32px; }
+    pre { position: relative; background: var(--bg-2); padding: 40px 16px 14px; border-radius: 10px; overflow-x: auto; margin: 8px 0; border: 1px solid var(--line); }
     pre code { background: none; padding: 0; border: 0; }
-    .code-lang { position: absolute; top: 9px; right: 12px; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); background: var(--bg); padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); }
+    .code-lang { position: absolute; top: 10px; left: 14px; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .copy-btn { position: absolute; top: 8px; right: 10px; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 24px; padding: 0; background: var(--panel-2); color: var(--text-2); border: 1px solid var(--line); border-radius: 7px; cursor: pointer; transition: color .12s, border-color .12s; }
+    .copy-btn:hover { color: var(--text); border-color: var(--line-strong); }
+    .copy-btn.copied { color: var(--accent); border-color: rgba(46,230,118,.5); }
     .emoji { width: 1.375em; height: 1.375em; vertical-align: bottom; object-fit: contain; }
     blockquote { border-left: 3px solid var(--accent); padding: 2px 14px; margin: 6px 0; color: var(--text-2); }
     strong { color: #fff; }
@@ -153,7 +155,7 @@
     }
   </style>
 </head>
-<body>
+<body data-copy="Copy" data-copied="Copied!">
   <div class="wrap">
     <header class="header">
       <div class="eyebrow"><span class="dot"></span> Ticket Transcript</div>
@@ -194,7 +196,7 @@
             
             <time class="timestamp">18/06/2026, 14:05</time>
           </div>
-          <div class="msg-content">And one <strong>with</strong> a language label:<br><pre class="has-lang"><span class="code-lang">lua</span><code>-- Code Block mit lua highlighting<br>local test = function()<br>    return true<br>end</code></pre></div>
+          <div class="msg-content">And one <strong>with</strong> a language label:<br><pre><span class="code-lang">lua</span><button class="copy-btn" type="button"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><code>-- Code Block mit lua highlighting<br>local test = function()<br>    return true<br>end</code></pre></div>
         </div>
       </div>
       <div class="message">
@@ -205,7 +207,7 @@
             
             <time class="timestamp">18/06/2026, 14:02</time>
           </div>
-          <div class="msg-content"><blockquote>A short quote</blockquote><br>Code block <strong>without</strong> language:<br><pre><code>code block blabla</code></pre></div>
+          <div class="msg-content"><blockquote>A short quote</blockquote><br>Code block <strong>without</strong> language:<br><pre><button class="copy-btn" type="button"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><code>code block blabla</code></pre></div>
         </div>
       </div>
       <div class="message">
@@ -234,8 +236,24 @@
 
     <footer class="footer">
       <div class="brand">MSK <b>Scripts</b> · Discord Ticket Bot</div>
-      <div class="gen">Generated on 18/06/2026, 17:54</div>
+      <div class="gen">Generated on 19/06/2026, 06:26</div>
     </footer>
   </div>
+  <script>
+(function(){
+  var C=(document.body.dataset.copy||'Copy'), K=(document.body.dataset.copied||'Copied!');
+  var CHECK='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  document.querySelectorAll('.copy-btn').forEach(function(b){ b.title=C; b.setAttribute('aria-label',C); });
+  function flash(b){ var o=b.innerHTML; b.innerHTML=CHECK; b.classList.add('copied'); b.title=K; setTimeout(function(){ b.innerHTML=o; b.classList.remove('copied'); b.title=C; },1500); }
+  function fallback(text){ try{ var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.top='-9999px'; document.body.appendChild(ta); ta.focus(); ta.select(); var ok=document.execCommand('copy'); document.body.removeChild(ta); return ok; }catch(e){ return false; } }
+  document.addEventListener('click', function(e){
+    var b=e.target.closest?e.target.closest('.copy-btn'):null; if(!b) return;
+    var pre=b.closest('pre'); var code=pre&&pre.querySelector('code'); if(!code) return;
+    var text=code.innerText;
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){flash(b);},function(){ if(fallback(text)) flash(b); }); }
+    else { if(fallback(text)) flash(b); }
+  });
+})();
+</script>
 </body>
 </html>

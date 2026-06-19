@@ -480,13 +480,14 @@ Beim Wiederöffnen werden die Zugriffsrechte des Erstellers wiederhergestellt, d
 
 ### Transcript-Design
 
-Das HTML-Transcript kann in einem modernen, minimalen MSK-Design oder im klassischen Discord-Stil gerendert werden.
+Das HTML-Transcript kann in einem modernen, minimalen MSK-Design oder im klassischen Discord-Stil gerendert werden — und auf Englisch oder Deutsch.
 
 ```jsonc
-"transcriptDesign": "modern"   // "modern" (Standard) oder "classic"
+"transcriptDesign": "modern",  // "modern" (Standard) oder "classic"
+"transcriptLang": "en"         // "en" oder "de" — Fallback Englisch, falls weggelassen/nicht unterstützt
 ```
 
-Beide Designs sind vollständig self-contained (offline-tauglich): Avatare und Custom-Emojis werden als Base64 eingebettet, User-Mentions sowie die Felder **Created by / Claimed by / Closed by** werden als Anzeigenamen statt roher IDs dargestellt, und der Header enthält den Schließenden sowie den Schließgrund (Grund nur, falls einer angegeben wurde).
+Beide Designs sind vollständig self-contained (offline-tauglich): Avatare und Custom-Emojis werden als Base64 eingebettet, User-Mentions sowie die Felder **Created by / Claimed by / Closed by** werden als Anzeigenamen statt roher IDs dargestellt, und der Header enthält den Schließenden sowie den Schließgrund (Grund nur, falls einer angegeben wurde). Code-Blöcke haben einen **Copy-Button**, und `transcriptLang` lokalisiert alle Transcript-Beschriftungen sowie das Datumsformat.
 
 ### Vordefinierte Priorität pro Ticket-Typ
 

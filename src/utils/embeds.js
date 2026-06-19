@@ -127,7 +127,12 @@ function ticketClosedDMEmbed(client, { count, type, closer, reason, transcriptUr
     .setTimestamp();
 
   if (transcriptUrl) {
-    embed.addFields({ name: '📄 Transcript', value: `[Herunterladen](${transcriptUrl})`, inline: true });
+    const e = client.locale.embeds?.ticketClosedDM ?? {};
+    embed.addFields({
+      name:  `📄 ${e.transcript ?? 'Transcript'}`,
+      value: `[${e.transcriptLink ?? 'Open'}](${transcriptUrl})`,
+      inline: true,
+    });
   }
   return embed;
 }
@@ -155,7 +160,11 @@ function ticketLogEmbed(client, { ticket, closer, reason, duration, transcriptUr
   );
 
   if (transcriptUrl) {
-    embed.addFields({ name: '📄 Transcript', value: `[Öffnen](${transcriptUrl})`, inline: true });
+    embed.addFields({
+      name:  `📄 ${f.transcript ?? 'Transcript'}`,
+      value: `[${client.locale.embeds?.ticketLog?.transcriptLink ?? 'Open'}](${transcriptUrl})`,
+      inline: true,
+    });
   }
   return embed;
 }
